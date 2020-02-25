@@ -10,6 +10,13 @@ LOSS = -1.0
 DRAW = 0.5
 
 """
+Playing:
+- play game of go through the host
+- against all players
+- select best moves based on q value tables
+"""
+"""
+Learning:
 - play game of go through the host
 - against random player & then itself
 - select best moves based on q value tables
@@ -40,13 +47,14 @@ class Q_learning_agent:
     maxQ:
     """
 
-    def __init__(self, alpha, gamma, piece_type, initial=0):
+    def __init__(self, piece_type, alpha, gamma, agent_type, initial=0):
         self.alpha = alpha
         self.gamma = gamma
         self.initial_values = initial
         self.q_values = {}
         self.states_to_update = []
         self.piece = piece_type
+        self.agent_type = agent_type  # either learning or playing
 
     def add_state(self, state):
         if state not in self.q_values:
@@ -81,3 +89,4 @@ class GoBoard:
 
     """
     # def __init__(self):
+    # self.state = numpy.zeros((5, 5))

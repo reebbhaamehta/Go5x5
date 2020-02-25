@@ -60,6 +60,7 @@ if __name__ == "__main__":
     # battle(Board(), SmartPlayer(), PerfectPlayer(), 100, learn=False, show_result=True)
 
     qlearner = QLearner()
+    qlearner2 = QLearner()
     NUM = qlearner.GAME_NUM
 
     # train: play NUM games against players who only make random moves
@@ -67,6 +68,14 @@ if __name__ == "__main__":
     board = Board()
     battle(board, RandomPlayer(), qlearner, NUM, learn=True, show_result=False)
     battle(board, qlearner, RandomPlayer(), NUM, learn=True, show_result=False)
+
+    print('Training QLearner2 against RandomPlayer for {} times......'.format(NUM))
+    battle(board, RandomPlayer(), qlearner2, NUM, learn=True, show_result=False)
+    battle(board, qlearner2, RandomPlayer(), NUM, learn=True, show_result=False)
+
+    print('Training QLearner against QLearner2 for {} times......'.format(NUM))
+    battle(board, qlearner2, qlearner, NUM, learn=True, show_result=False)
+    battle(board, qlearner, qlearner2, NUM, learn=True, show_result=False)
 
     # test: play 1000 games against each opponent
     print('Playing QLearner against RandomPlayer for 1000 times......')
@@ -79,16 +88,23 @@ if __name__ == "__main__":
     q_perfect = battle(board, qlearner, PerfectPlayer(), 500)
     perfect_q = battle(board, PerfectPlayer(), qlearner, 500)
 
+    print('Playing QLearner against PerfectPlayer for 1000 times......')
+    q_q2 = battle(board, qlearner, qlearner2, 500)
+    q2_q = battle(board, qlearner2, qlearner, 500)
+
     # summarize game results
     winning_rate_w_random_player = round(100 - (q_rand[2] + rand_q[1]) / 2, 2)
     winning_rate_w_smart_player = round(100 - (q_smart[2] + smart_q[1]) / 2, 2)
     winning_rate_w_perfect_player = round(100 - (q_perfect[2] + perfect_q[1]) / 2, 2)
+    winning_rate_w_qlearner2 = round(100 - (q_q2[2] + q2_q[1]) / 2, 2)
 
     print("Summary:")
     print("_" * 60)
     print("QLearner VS  RandomPlayer |  Win/Draw Rate = {}%".format(winning_rate_w_random_player))
     print("QLearner VS   SmartPlayer |  Win/Draw Rate = {}%".format(winning_rate_w_smart_player))
     print("QLearner VS PerfectPlayer |  Win/Draw Rate = {}%".format(winning_rate_w_perfect_player))
+    print("QLearner VS qlearner2 |  Win/Draw Rate = {}%".format(winning_rate_w_qlearner2))
+
     print("_" * 60)
 
     grade = 0
