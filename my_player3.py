@@ -1,13 +1,16 @@
 # 7042208305 :Reebbhaa Mehta
+
 from read import readInput
 from write import writeOutput
 
 from host import GO
 import numpy
+import json
 
 WIN = 1.0
 LOSS = -1.0
 DRAW = 0.5
+INVALID_MOVE = -1.0
 
 """
 Playing:
@@ -37,6 +40,8 @@ class Q_learning_agent:
         q values: dictionary of state, action tuples as keys and q values as values.
         initial values
         states_to_update: list of states visited that need to be updated after a game.
+        agent_type: Playing or Learning
+        piece_type: 1 for black, 2 for white
 
     update_Qvalues:
 
@@ -47,7 +52,7 @@ class Q_learning_agent:
     maxQ:
     """
 
-    def __init__(self, piece_type, alpha, gamma, agent_type, initial=0):
+    def __init__(self, piece_type = 1, alpha=0.7, gamma=0.9, agent_type="Learning", initial=numpy.random.rand(5, 5)):
         self.alpha = alpha
         self.gamma = gamma
         self.initial_values = initial
@@ -55,38 +60,75 @@ class Q_learning_agent:
         self.states_to_update = []
         self.piece = piece_type
         self.agent_type = agent_type  # either learning or playing
+        self.type = "mine"
+
+    def update_piece_type(self, piece):
+        self.piece = piece
 
     def add_state(self, state):
         if state not in self.q_values:
-            action_mat = numpy.zeros((5, 5))
-            action_mat.fill(self.initial_values)
+            # action_mat = numpy.zeros((5, 5))
+            # action_mat.fill(self.initial_values)
+            action_mat = self.initial_values
             self.q_values[state] = action_mat
-        return
+        return self.q_values[state]
 
-    def select_best_action(self, board, state):
+    def max_qvalue(self, qvalues):
+        curr_max = -numpy.inf
+        row, col = 0, 0
+        for i in range(0, 3):
+            for j in range(0, 3):
+                if qvalues[i][j] > curr_max:
+                    curr_max = qvalues[i][j]
+                    row, col = i, j
+        return row, col
 
-        return
+    def select_best_action(self, go):
+        state = str(go.board)
+        q_vals = self.add_state(state)
+        while True:
+            i, j = self.max_qvalue(q_vals)
+            if go.valid_place_check(i, j, self.piece):
+                return i, j
+            else:
+                q_vals[i][j] = INVALID_MOVE
 
-    def next_move(self, board):
+    def get_input(self, go, piece_type):
+        if go.game_end(piece_type):
+            return
+        row, col = self.select_best_action(go)
+        self.states_to_update.append((go.board, (row, col)))
+        return (go.board, (row, col))  # returns new state action pair
 
-        return
-
-    def update_Qvalues(self, result):
+    def update_Qvalues(self, go):
         # after a game update the q table
         # check result to set the reward
+        winner = go.judge_winner()
+        if winner == self.piece:
+            reward = WIN
+        elif winner == 0:
+            reward = DRAW
+        else:
+            reward = LOSS
+        max_q_value = -1.0
         self.states_to_update = self.states_to_update[::-1]
         for i in self.states_to_update:
-            curr_stateQ = self.q_values[i]
+            state, move = i
+            curr_stateQ = self.q_values[state]
+            if max_q_value < 0:
+                curr_stateQ[move[0]][move[1]] = reward
+            else:
+                curr_stateQ[move[0]][move[1]] = curr_stateQ[move[0]][move[1]] * (1 - self.alpha) \
+                                                + self.alpha * self.gamma * max_q_value
+            max_q_value = numpy.max(curr_stateQ)
+        self.states_to_update = []
 
 
-class GoBoard:
-    """
-    class of go board should contain:
-    constructor:
-        create the board of a fixed size
-    is_move_valid: decide if action is valid
-
-
-    """
-    # def __init__(self):
-    # self.state = numpy.zeros((5, 5))
+if __name__ == "__main__":
+    N = 5
+    piece_type, previous_board, board = readInput(N)
+    go = GO(N)
+    go.set_board(piece_type, previous_board, board)
+    player = Q_learning_agent(piece_type)
+    action = player.get_input(go, piece_type)
+    writeOutput(action[1])

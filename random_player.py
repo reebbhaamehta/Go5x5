@@ -7,8 +7,9 @@ from host import GO
 
 
 class RandomPlayer():
-    def __init__(self):
+    def __init__(self, piece_type=1):
         self.type = 'random'
+        self.piece = piece_type
 
     def get_input(self, go, piece_type):
         '''
@@ -28,6 +29,9 @@ class RandomPlayer():
             return "PASS"
         else:
             return random.choice(possible_placements)
+
+    def update_piece_type(self, piece):
+        self.piece = piece
 
 
 if __name__ == "__main__":

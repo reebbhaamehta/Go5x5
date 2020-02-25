@@ -88,7 +88,7 @@ if __name__ == "__main__":
     q_perfect = battle(board, qlearner, PerfectPlayer(), 500)
     perfect_q = battle(board, PerfectPlayer(), qlearner, 500)
 
-    print('Playing QLearner against PerfectPlayer for 1000 times......')
+    print('Playing QLearner against Qlearner2 for 1000 times......')
     q_q2 = battle(board, qlearner, qlearner2, 500)
     q2_q = battle(board, qlearner2, qlearner, 500)
 
