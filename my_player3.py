@@ -65,11 +65,11 @@ class Q_learning_agent:
         self.type = "mine"
         self.identity = piece_type
 
-    def load_dict(self):
-        self.q_values = pickle.load(open("dict", "rb"))
+    def load_dict(self, num_games):
+        self.q_values = pickle.load(open("dict{}".format(num_games), "rb"))
 
-    def save_dict(self):
-        pickle.dump(self.q_values, open("dict", "wb"))
+    def save_dict(self, num_games):
+        pickle.dump(self.q_values, open("dict{}".format(num_games), "wb"))
 
 
     def add_state(self, state):
@@ -116,7 +116,7 @@ class Q_learning_agent:
         self.states_to_update.append((go.board, action))
         return action  # returns new state action pair
 
-    def update_Qvalues(self, go):
+    def update_Qvalues(self, go, num_games):
         # after a game update the q table
         # check result to set the reward
         winner = go.judge_winner()
@@ -139,19 +139,19 @@ class Q_learning_agent:
                                                     + self.alpha * self.gamma * max_q_value
                 max_q_value = numpy.max(curr_stateQ)
 
-        pickle.dump(self.q_values, open("dict", "wb"))
-
+        # pickle.dump(self.q_values, open("dict", "wb"))
+        self.save_dict(num_games)
         self.states_to_update = []
 
 
 if __name__ == "__main__":
     N = 5
-# piece_type, previous_board, board = readInput(N)
-# go = GO(N)
-# go.set_board(piece_type, previous_board, board)
-#
-# player = Q_learning_agent(piece_type)
-# if go.game_end(1):
-#     player.update_Qvalues(go)
-# action = player.get_input(go, piece_type)
-# writeOutput(action)
+    piece_type, previous_board, board = readInput(N)
+    go = GO(N)
+    go.set_board(piece_type, previous_board, board)
+    player = Q_learning_agent()
+    player.load_dict()
+    # if go.game_end(1):
+    #     player.update_Qvalues(go)
+    action = player.get_input(go, piece_type)
+    writeOutput(action)

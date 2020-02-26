@@ -24,7 +24,7 @@ class GO:
         self.n_move = 0  # Trace the number of moves
         self.max_move = n * n - 1  # The max movement of a Go game
         self.komi = n / 2  # Komi rule
-        self.verbose = True  # Verbose only when there is a manual player
+        self.verbose = False  # Verbose only when there is a manual player
 
     def init_board(self, n):
         '''
