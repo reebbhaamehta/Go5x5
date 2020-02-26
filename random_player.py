@@ -7,7 +7,7 @@ from host import GO
 
 
 class RandomPlayer():
-    def __init__(self, piece_type=1):
+    def __init__(self, piece_type):
         self.type = 'random'
         self.piece = piece_type
 
@@ -22,7 +22,7 @@ class RandomPlayer():
         possible_placements = []
         for i in range(go.size):
             for j in range(go.size):
-                if go.valid_place_check(i, j, piece_type, test_check=True):
+                if go.valid_place_check(i, j, piece_type, test_check=False):
                     possible_placements.append((i, j))
 
         if not possible_placements:

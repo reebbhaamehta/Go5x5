@@ -24,7 +24,7 @@ class GO:
         self.n_move = 0  # Trace the number of moves
         self.max_move = n * n - 1  # The max movement of a Go game
         self.komi = n / 2  # Komi rule
-        self.verbose = False  # Verbose only when there is a manual player
+        self.verbose = True  # Verbose only when there is a manual player
 
     def init_board(self, n):
         '''
@@ -239,7 +239,12 @@ class GO:
             return False
 
         # Check if the place already has a piece
+        TEST=board[i][j]
         if board[i][j] != 0:
+            print(i)
+            print(j)
+            print(piece_type)
+            print(verbose)
             if verbose:
                 print('Invalid placement. There is already a chess in this position.')
             return False
@@ -398,6 +403,7 @@ class GO:
             if action != "PASS":
                 # If invalid input, continue the loop. Else it places a chess on the board.
                 if not self.place_chess(action[0], action[1], piece_type):
+                    print("here")
                     if verbose:
                         self.visualize_board()
                     continue

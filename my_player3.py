@@ -1,8 +1,9 @@
 # 7042208305 :Reebbhaa Mehta
+import pickle
 
 from read import readInput
 from write import writeOutput
-
+import json
 from host import GO
 import numpy
 import json
@@ -52,7 +53,7 @@ class Q_learning_agent:
     maxQ:
     """
 
-    def __init__(self, piece_type = 1, alpha=0.7, gamma=0.9, agent_type="Learning", initial=numpy.random.rand(5, 5)):
+    def __init__(self, piece_type, alpha=0.7, gamma=0.9, agent_type="Learning", initial=numpy.random.rand(5, 5)):
         self.alpha = alpha
         self.gamma = gamma
         self.initial_values = initial
@@ -89,6 +90,7 @@ class Q_learning_agent:
         while True:
             i, j = self.max_qvalue(q_vals)
             if go.valid_place_check(i, j, self.piece):
+                print(i)
                 return i, j
             else:
                 q_vals[i][j] = INVALID_MOVE
@@ -98,7 +100,7 @@ class Q_learning_agent:
             return
         row, col = self.select_best_action(go)
         self.states_to_update.append((go.board, (row, col)))
-        return (go.board, (row, col))  # returns new state action pair
+        return row, col  # returns new state action pair
 
     def update_Qvalues(self, go):
         # after a game update the q table
@@ -114,13 +116,22 @@ class Q_learning_agent:
         self.states_to_update = self.states_to_update[::-1]
         for i in self.states_to_update:
             state, move = i
-            curr_stateQ = self.q_values[state]
+            curr_stateQ = self.q_values[str(state)]
             if max_q_value < 0:
                 curr_stateQ[move[0]][move[1]] = reward
             else:
                 curr_stateQ[move[0]][move[1]] = curr_stateQ[move[0]][move[1]] * (1 - self.alpha) \
                                                 + self.alpha * self.gamma * max_q_value
             max_q_value = numpy.max(curr_stateQ)
+
+        # json1 = json.dumps(tolist(self.q_values.))
+        # f = open("dict.json", "w")
+        # f.write(json1)
+        # f.close()
+        # f = open("dict.p", "w")
+        pickle.dump(self.q_values, open("dict", "wb"))
+        # f.write(pick)
+        # f.close()
         self.states_to_update = []
 
 
@@ -129,6 +140,9 @@ if __name__ == "__main__":
     piece_type, previous_board, board = readInput(N)
     go = GO(N)
     go.set_board(piece_type, previous_board, board)
+
     player = Q_learning_agent(piece_type)
+    if go.game_end(1):
+        player.update_Qvalues(go)
     action = player.get_input(go, piece_type)
-    writeOutput(action[1])
+    writeOutput(action)
