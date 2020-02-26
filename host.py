@@ -241,10 +241,6 @@ class GO:
         # Check if the place already has a piece
         TEST=board[i][j]
         if board[i][j] != 0:
-            print(i)
-            print(j)
-            print(piece_type)
-            print(verbose)
             if verbose:
                 print('Invalid placement. There is already a chess in this position.')
             return False
@@ -398,15 +394,19 @@ class GO:
 
             if verbose:
                 player = "X" if piece_type == 1 else "O"
-                print(action)
 
             if action != "PASS":
                 # If invalid input, continue the loop. Else it places a chess on the board.
                 if not self.place_chess(action[0], action[1], piece_type):
-                    print("here")
+                    print('return FALSE')
+                    if piece_type == 1:
+                        print("X turn: player1")
+                    elif piece_type == 2:
+                        print("O turn: player2")
                     if verbose:
                         self.visualize_board()
-                    continue
+                    # continue
+                    return -1  # return -1 if the move is invalid for training purposes
 
                 self.died_pieces = self.remove_died_pieces(3 - piece_type)  # Remove the dead pieces of opponent
             else:
