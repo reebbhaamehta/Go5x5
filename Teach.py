@@ -1,3 +1,4 @@
+import copy
 import filecmp
 import pickle
 import sys
@@ -10,7 +11,7 @@ from random_player import RandomPlayer
 
 X = 1
 O = 2
-LEARN_GAMES = 100
+LEARN_GAMES = 10000000
 
 """
 Learning:
@@ -21,6 +22,35 @@ Learning:
 - update table of q values for each state
 """
 
+
+def battle(go, player1, player2, iter, show_result=False):
+    p1_stats = [0, 0, 0]  # draw, win, lose
+    for i in range(0, iter):
+        go.init_board(5)
+        result = go.play(player1, player2, False)
+        if player1.learn:
+            player1.update_Qvalues(go, i + 1)
+            if i % 9999 == 0:
+                player1.save_dict(i + 1)
+        elif player2.learn:
+            player2.update_Qvalues(go, i + 1)
+            if i % 9999 == 0:
+                player2.save_dict(i + 1)
+        p1_stats[result] += 1
+
+    p1_stats = [round(x / iter * 100.0, 1) for x in p1_stats]
+    if show_result:
+        print('_' * 60)
+        print('{:>15}(X) | Wins:{}% Draws:{}% Losses:{}%'.format(player1.__class__.__name__, p1_stats[1], p1_stats[0],
+                                                                 p1_stats[2]).center(50))
+        print('{:>15}(O) | Wins:{}% Draws:{}% Losses:{}%'.format(player2.__class__.__name__, p1_stats[2], p1_stats[0],
+                                                                 p1_stats[1]).center(50))
+        print('_' * 60)
+        print()
+
+    return p1_stats
+
+
 if __name__ == "__main__":
 
     qlearner = Q_learning_agent()
@@ -28,27 +58,16 @@ if __name__ == "__main__":
     random_player = RandomPlayer()
 
     num_games = 0
-    for i in range(LEARN_GAMES):
-        go = GO(5)
-        go.init_board(5)
-        go.play(random_player, qlearner, False)
-        num_games += 1
-        if num_games == 100:
-            qlearner.update_Qvalues(go, i + 1)
-            num_games = 0
+    go = GO(5)
+    battle(go, random_player, qlearner, int(LEARN_GAMES / 4), True)
+    battle(go, qlearner, random_player, int(LEARN_GAMES / 4), True)
 
     qlearnerpoint2 = Q_learning_agent()
-    qlearnerpoint2.load_dict(LEARN_GAMES)
-    num_games = 0
+    qlearnerpoint2 = copy.deepcopy(qlearner)
+    qlearner.learn = False
+    battle(go, qlearnerpoint2, qlearner, int(LEARN_GAMES / 4), True)
+    battle(go, qlearner, qlearnerpoint2, int(LEARN_GAMES / 4), True)
 
-    for i in range(LEARN_GAMES):
-        go = GO(5)
-        go.init_board(5)
-        go.play(qlearnerpoint2, qlearner, False)
-        num_games += 1
-        if num_games == 100:
-            qlearnerpoint2.update_Qvalues(go, i + 1 + LEARN_GAMES)
-            num_games = 0
 
     # file = "qlearner.txt"
     # with open(file, 'w') as f:

@@ -55,7 +55,7 @@ class Q_learning_agent:
     """
 
     def __init__(self, piece_type=None, alpha=0.7, gamma=0.9, agent_type="Learning",
-                 initial=numpy.random.rand(GO_SIZE, GO_SIZE)):
+                 initial=numpy.random.rand(GO_SIZE, GO_SIZE), learn=True):
         self.alpha = alpha
         self.gamma = gamma
         self.initial_values = initial
@@ -64,13 +64,13 @@ class Q_learning_agent:
         self.agent_type = agent_type  # either learning or playing
         self.type = "mine"
         self.identity = piece_type
+        self.learn = learn
 
     def load_dict(self, num_games):
-        self.q_values = pickle.load(open("dict{}".format(num_games), "rb"))
+        self.q_values = pickle.load(open("qvalues_{}.pkl".format(num_games), "rb"))
 
     def save_dict(self, num_games):
-        pickle.dump(self.q_values, open("dict{}".format(num_games), "wb"))
-
+        pickle.dump(self.q_values, open("qvalues_{}.pkl".format(num_games), "wb"))
 
     def add_state(self, state):
         if state not in self.q_values:
@@ -140,9 +140,8 @@ class Q_learning_agent:
                 max_q_value = numpy.max(curr_stateQ)
 
         # pickle.dump(self.q_values, open("dict", "wb"))
-        self.save_dict(num_games)
+        # self.save_dict(num_games)
         self.states_to_update = []
-
 
 if __name__ == "__main__":
     N = 5

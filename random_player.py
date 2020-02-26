@@ -9,6 +9,7 @@ from host import GO
 class RandomPlayer():
     def __init__(self):
         self.type = 'random'
+        self.learn = False
 
     def get_input(self, go, piece_type):
         '''
