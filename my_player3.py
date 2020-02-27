@@ -31,34 +31,12 @@ Learning:
 
 
 class Q_learning_agent:
-    """
-    Q learning agent class should contain:
-    state: current pieces on the board, if it is black or white's turn
-    actions: possible next states. 5x5 board with
-    q_values:
-    constructor:
-        alpha
-        gamma
-        q values: dictionary of state, action tuples as keys and q values as values.
-        initial values
-        states_to_update: list of states visited that need to be updated after a game.
-        agent_type: Playing or Learning
-        piece_type: 1 for black, 2 for white
-
-    update_Qvalues:
-
-    next_move:
-
-    select_best_action:
-
-    maxQ:
-    """
 
     def __init__(self, piece_type=None, alpha=0.7, gamma=0.9, agent_type="Learning",
                  initial=numpy.random.rand(GO_SIZE, GO_SIZE), learn=True):
         self.alpha = alpha
         self.gamma = gamma
-        self.initial_values = initial
+        self.initial_values = initial  # numpy.random.rand(GO_SIZE, GO_SIZE)
         self.q_values = {}
         self.states_to_update = []
         self.agent_type = agent_type  # either learning or playing
@@ -78,8 +56,6 @@ class Q_learning_agent:
             # action_mat.fill(self.initial_values)
             action_mat = self.initial_values
             self.q_values[state] = action_mat
-            tep = self.q_values
-            l = len(self.q_values)
         return self.q_values[state]
 
     def max_qvalue(self, qvalues, go, piece_type):
@@ -114,6 +90,7 @@ class Q_learning_agent:
         q_vals = self.add_state(state)
         action = self.max_qvalue(q_vals, go, piece_type)
         self.states_to_update.append((go.board, action))
+        # print(self.states_to_update[len(self.states_to_update)-1])
         return action  # returns new state action pair
 
     def update_Qvalues(self, go, num_games):
@@ -127,21 +104,28 @@ class Q_learning_agent:
         else:
             reward = LOSS
         max_q_value = -1.0
-        self.states_to_update = self.states_to_update[::-1]
+        # print(self.q_values)
+        # print(self.states_to_update)
+        # self.states_to_update = self.states_to_update[::-1]
         for state, move in self.states_to_update:
-            if move != "PASS":
-                curr_stateQ = self.add_state(str(state))
+            # if move != "PASS":
+            curr_stateQ = self.add_state(str(state))
 
-                if max_q_value < 0:
-                    curr_stateQ[move[0]][move[1]] = reward
-                else:
-                    curr_stateQ[move[0]][move[1]] = curr_stateQ[move[0]][move[1]] * (1 - self.alpha) \
-                                                    + self.alpha * self.gamma * max_q_value
-                max_q_value = numpy.max(curr_stateQ)
-
+            if max_q_value < 0:
+                curr_stateQ[move[0]][move[1]] = reward
+            else:
+                curr_stateQ[move[0]][move[1]] = curr_stateQ[move[0]][move[1]] * (1 - self.alpha) \
+                                                + self.alpha * self.gamma * max_q_value
+            max_q_value = numpy.max(curr_stateQ)
         # pickle.dump(self.q_values, open("dict", "wb"))
         # self.save_dict(num_games)
         self.states_to_update = []
+
+# class Game:
+#
+#     def __init__(self):
+#         self.board = numpy.
+
 
 if __name__ == "__main__":
     N = 5

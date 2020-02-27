@@ -239,7 +239,6 @@ class GO:
             return False
 
         # Check if the place already has a piece
-        TEST=board[i][j]
         if board[i][j] != 0:
             if verbose:
                 print('Invalid placement. There is already a chess in this position.')

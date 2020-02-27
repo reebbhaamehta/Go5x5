@@ -29,13 +29,13 @@ def battle(go, player1, player2, iter, show_result=False):
         go.init_board(5)
         result = go.play(player1, player2, False)
         if player1.learn:
-            player1.update_Qvalues(go, i + 1)
-            if i % 9999 == 0:
-                player1.save_dict(i + 1)
+            player1.update_Qvalues(go, i)
+            if i % 100000 == 0:
+                player1.save_dict(i)
         elif player2.learn:
-            player2.update_Qvalues(go, i + 1)
-            if i % 9999 == 0:
-                player2.save_dict(i + 1)
+            player2.update_Qvalues(go, i)
+            if i % 100000 == 0:
+                player2.save_dict(i)
         p1_stats[result] += 1
 
     p1_stats = [round(x / iter * 100.0, 1) for x in p1_stats]
@@ -52,12 +52,8 @@ def battle(go, player1, player2, iter, show_result=False):
 
 
 if __name__ == "__main__":
-
     qlearner = Q_learning_agent()
-
     random_player = RandomPlayer()
-
-    num_games = 0
     go = GO(5)
     battle(go, random_player, qlearner, int(LEARN_GAMES / 4), True)
     battle(go, qlearner, random_player, int(LEARN_GAMES / 4), True)
@@ -68,6 +64,15 @@ if __name__ == "__main__":
     battle(go, qlearnerpoint2, qlearner, int(LEARN_GAMES / 4), True)
     battle(go, qlearner, qlearnerpoint2, int(LEARN_GAMES / 4), True)
 
+    # TODO: check if update_qvalues is actually updating the correct
+    #  values and not just a random variable before throwing it away.
+    #  Checking breifly on Feb 27. I believe the q values are being
+    #  updated correctly.
+
+    # TODO: implement my own functions and classes to account for
+    #  reading current / previous state and writing output files,
+    #  to check if the move I am about to make is valid and all
+    #  the helper functions that are required to check those conditions.
 
     # file = "qlearner.txt"
     # with open(file, 'w') as f:
