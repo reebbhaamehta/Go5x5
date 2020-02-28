@@ -2,6 +2,7 @@ import copy
 import filecmp
 import pickle
 import sys
+import time
 
 from my_player3 import Q_learning_agent
 from host import GO, judge
@@ -11,7 +12,8 @@ from random_player import RandomPlayer
 
 X = 1
 O = 2
-LEARN_GAMES = 10000000
+LEARN_GAMES = 1000000
+TEST_GAMES = 100
 
 """
 Learning:
@@ -23,19 +25,24 @@ Learning:
 """
 
 
-def battle(go, player1, player2, iter, show_result=False):
+def battle(player1, player2, iter, show_result=False):
     p1_stats = [0, 0, 0]  # draw, win, lose
-    for i in range(0, iter):
+    for i in range(iter + 1):
+        go = GO(5)
+        go.verbose = True
         go.init_board(5)
-        result = go.play(player1, player2, False)
+        result = go.play(player1, player2, True)
         if player1.learn:
-            player1.update_Qvalues(go, i)
-            if i % 100000 == 0:
+            player1.update_Qvalues(go)
+            if i % 1000000 == 0:
                 player1.save_dict(i)
         elif player2.learn:
-            player2.update_Qvalues(go, i)
-            if i % 100000 == 0:
+            player2.update_Qvalues(go)
+            if i % 1000000 == 0:
                 player2.save_dict(i)
+        if i % 100 == 0:
+            track_intelligence(p1_stats, player1 if player1.learn else player2)
+            p1_stats = [0, 0, 0]
         p1_stats[result] += 1
 
     p1_stats = [round(x / iter * 100.0, 1) for x in p1_stats]
@@ -51,22 +58,41 @@ def battle(go, player1, player2, iter, show_result=False):
     return p1_stats
 
 
-if __name__ == "__main__":
+def make_smarter():
     qlearner = Q_learning_agent()
     random_player = RandomPlayer()
-    go = GO(5)
-    battle(go, random_player, qlearner, int(LEARN_GAMES / 4), True)
-    battle(go, qlearner, random_player, int(LEARN_GAMES / 4), True)
+    battle(random_player, qlearner, int(LEARN_GAMES), True)
+    battle(qlearner, random_player, int(LEARN_GAMES), True)
 
-    qlearnerpoint2 = Q_learning_agent()
-    qlearnerpoint2 = copy.deepcopy(qlearner)
+    # qlearnerpoint2 = copy.deepcopy(qlearner)
+    # qlearner.learn = False
+    # battle(go, qlearnerpoint2, qlearner, int(LEARN_GAMES / 4), True)
+    # battle(go, qlearner, qlearnerpoint2, int(LEARN_GAMES / 4), True)
+
+
+def test():
+    qlearner = Q_learning_agent()
+    random_player = RandomPlayer()
     qlearner.learn = False
-    battle(go, qlearnerpoint2, qlearner, int(LEARN_GAMES / 4), True)
-    battle(go, qlearner, qlearnerpoint2, int(LEARN_GAMES / 4), True)
+    qlearner.load_dict(1000000)
+    battle(random_player, qlearner, int(TEST_GAMES), True)
+    battle(qlearner, random_player, int(TEST_GAMES), True)
 
+# arbitrarily
+def evaluate_intelligence(stats, learning_player):
+#     stats = [0, 0, 0] piece type of winner of the game (0 if it's a tie)
+    stats = [round(x / iter * 100.0, 1) for x in stats]
+
+
+
+# TODO: make an evaluation function that calculates win rate as a
+#  metric to judge progress, this should happen while training and testing.
+if __name__ == "__main__":
+    make_smarter()
+    # test()
     # TODO: check if update_qvalues is actually updating the correct
     #  values and not just a random variable before throwing it away.
-    #  Checking breifly on Feb 27. I believe the q values are being
+    #  Checking briefly on Feb 27. I believe the q values are being
     #  updated correctly.
 
     # TODO: implement my own functions and classes to account for

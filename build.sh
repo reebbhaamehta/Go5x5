@@ -33,7 +33,7 @@ fi
 
 echo ""
 
-prefix="$ASNLIB/public/myplayer_play/"
+prefix="myplayer_play/"
 ta_agent=("random_player") # 1 TA players
 surfix=".py"
 
@@ -47,7 +47,7 @@ play()
     if [ -f "output.txt" ]; then
         rm output.txt
     fi
-    cp $prefix/init/input.txt ./input.txt
+    cp init/input.txt ./input.txt
 
     echo Start Playing... >&2
 
@@ -62,7 +62,7 @@ play()
 		eval "$1" >&2
 		let moves+=1
 
-		python3 $prefix/host.py -m $moves -v True >&2
+		python3 host.py -m $moves -v True >&2
 		rst=$?
 
 		if [[ "$rst" != "0" ]]; then
@@ -77,7 +77,7 @@ play()
 		eval "$2" >&2
 		let moves+=1
 
-		python3 $prefix/host.py -m $moves -v True >&2
+		python3 host.py -m $moves -v True >&2
 		rst=$?
 
 		if [[ "$rst" != "0" ]]; then
@@ -100,7 +100,7 @@ do
     echo ""
     echo ==Playing with ${ta_agent[i]}==
     echo $(date)
-    ta_cmd="python3 $prefix${ta_agent[i]}$surfix"
+    ta_cmd="python3 ${ta_agent[i]}$surfix"
     black_win_time=0
     white_win_time=0
     black_tie=0

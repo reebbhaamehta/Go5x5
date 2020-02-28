@@ -11,7 +11,7 @@ import json
 GO_SIZE = 5
 WIN = 1.0
 LOSS = -1.0
-DRAW = 0.5
+DRAW = 0.5  # TODO: change this to 0 maybe?
 INVALID_MOVE = -1.0
 
 """
@@ -31,7 +31,7 @@ Learning:
 
 
 class Q_learning_agent:
-
+    # TODO: make alpha increase over time so that it makes more sense
     def __init__(self, piece_type=None, alpha=0.7, gamma=0.9, agent_type="Learning",
                  initial=numpy.random.rand(GO_SIZE, GO_SIZE), learn=True):
         self.alpha = alpha
@@ -93,7 +93,7 @@ class Q_learning_agent:
         # print(self.states_to_update[len(self.states_to_update)-1])
         return action  # returns new state action pair
 
-    def update_Qvalues(self, go, num_games):
+    def update_Qvalues(self, go):
         # after a game update the q table
         # check result to set the reward
         winner = go.judge_winner()
@@ -108,15 +108,15 @@ class Q_learning_agent:
         # print(self.states_to_update)
         # self.states_to_update = self.states_to_update[::-1]
         for state, move in self.states_to_update:
-            # if move != "PASS":
-            curr_stateQ = self.add_state(str(state))
+            if move != "PASS":
+                curr_stateQ = self.add_state(str(state))
 
-            if max_q_value < 0:
-                curr_stateQ[move[0]][move[1]] = reward
-            else:
-                curr_stateQ[move[0]][move[1]] = curr_stateQ[move[0]][move[1]] * (1 - self.alpha) \
+                if max_q_value < 0:
+                    curr_stateQ[move[0]][move[1]] = reward
+                else:
+                    curr_stateQ[move[0]][move[1]] = curr_stateQ[move[0]][move[1]] * (1 - self.alpha) \
                                                 + self.alpha * self.gamma * max_q_value
-            max_q_value = numpy.max(curr_stateQ)
+                max_q_value = numpy.max(curr_stateQ)
         # pickle.dump(self.q_values, open("dict", "wb"))
         # self.save_dict(num_games)
         self.states_to_update = []
@@ -125,7 +125,9 @@ class Q_learning_agent:
 #
 #     def __init__(self):
 #         self.board = numpy.
-
+# class Game:
+#     def __init(self):
+#         self.
 
 if __name__ == "__main__":
     N = 5
@@ -133,7 +135,7 @@ if __name__ == "__main__":
     go = GO(N)
     go.set_board(piece_type, previous_board, board)
     player = Q_learning_agent()
-    player.load_dict()
+    player.load_dict(2490000)
     # if go.game_end(1):
     #     player.update_Qvalues(go)
     action = player.get_input(go, piece_type)
