@@ -32,6 +32,7 @@ def battle(player1, player2, iter, show_result=False):
         go.verbose = True
         go.init_board(5)
         result = go.play(player1, player2, True)
+        batch = 100
         if player1.learn:
             player1.update_Qvalues(go)
             if i % 1000000 == 0:
@@ -40,20 +41,20 @@ def battle(player1, player2, iter, show_result=False):
             player2.update_Qvalues(go)
             if i % 1000000 == 0:
                 player2.save_dict(i)
-        if i % 100 == 0:
-            track_intelligence(p1_stats, player1 if player1.learn else player2)
+        if i % batch == 0:
+            track_intelligence(p1_stats, batch)
             p1_stats = [0, 0, 0]
         p1_stats[result] += 1
 
-    p1_stats = [round(x / iter * 100.0, 1) for x in p1_stats]
-    if show_result:
-        print('_' * 60)
-        print('{:>15}(X) | Wins:{}% Draws:{}% Losses:{}%'.format(player1.__class__.__name__, p1_stats[1], p1_stats[0],
-                                                                 p1_stats[2]).center(50))
-        print('{:>15}(O) | Wins:{}% Draws:{}% Losses:{}%'.format(player2.__class__.__name__, p1_stats[2], p1_stats[0],
-                                                                 p1_stats[1]).center(50))
-        print('_' * 60)
-        print()
+    # p1_stats = [round(x / iter * 100.0, 1) for x in p1_stats]
+    # if show_result:
+    #     print('_' * 60)
+    #     print('{:>15}(X) | Wins:{}% Draws:{}% Losses:{}%'.format(player1.__class__.__name__, p1_stats[1], p1_stats[0],
+    #                                                              p1_stats[2]).center(50))
+    #     print('{:>15}(O) | Wins:{}% Draws:{}% Losses:{}%'.format(player2.__class__.__name__, p1_stats[2], p1_stats[0],
+    #                                                              p1_stats[1]).center(50))
+    #     print('_' * 60)
+    #     print()
 
     return p1_stats
 
@@ -78,11 +79,15 @@ def test():
     battle(random_player, qlearner, int(TEST_GAMES), True)
     battle(qlearner, random_player, int(TEST_GAMES), True)
 
-# arbitrarily
-def evaluate_intelligence(stats, learning_player):
-#     stats = [0, 0, 0] piece type of winner of the game (0 if it's a tie)
-    stats = [round(x / iter * 100.0, 1) for x in stats]
 
+# arbitrarily
+def track_intelligence(stats, batch):
+    # stats = [0, 0, 0] piece type of winner of the game (0 if it's a tie)
+    stats = [round(x / batch * 100.0, 1) for x in stats]
+
+    with open("Track Intelligence.txt", 'a') as f:
+        f.write(str(stats))
+        f.write("\n")
 
 
 # TODO: make an evaluation function that calculates win rate as a

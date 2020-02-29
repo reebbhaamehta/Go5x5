@@ -1,4 +1,5 @@
 # 7042208305 :Reebbhaa Mehta
+import copy
 import pickle
 
 from read import readInput
@@ -115,19 +116,48 @@ class Q_learning_agent:
                     curr_stateQ[move[0]][move[1]] = reward
                 else:
                     curr_stateQ[move[0]][move[1]] = curr_stateQ[move[0]][move[1]] * (1 - self.alpha) \
-                                                + self.alpha * self.gamma * max_q_value
+                                                    + self.alpha * self.gamma * max_q_value
                 max_q_value = numpy.max(curr_stateQ)
         # pickle.dump(self.q_values, open("dict", "wb"))
         # self.save_dict(num_games)
         self.states_to_update = []
 
-# class Game:
-#
-#     def __init__(self):
-#         self.board = numpy.
-# class Game:
-#     def __init(self):
-#         self.
+
+class Game:
+
+    def __init__(self, size):
+        self.num_moves = 0
+        self.max_move = size * size - 1  # The max movement of a Go game
+        self.komi = size / 2  # Komi rule
+        self.size = size
+        self.board = numpy.zeros(self.size, self.size)
+        self.previous_board = copy.deepcopy(self.board)
+        self.piece_type = None
+
+    def new_board(self):
+        self.board = numpy.zeros(self.size, self.size)
+        self.previous_board = copy.deepcopy(self.board)
+
+    # TODO: rewrite this function
+    def read_input(self):
+        with open("input.txt", 'r') as f:
+            lines = f.readlines()
+            self.piece_type = int(lines[0])
+            self.previous_board = [[int(x) for x in line.rstrip('\n')] for line in lines[1:self.size + 1]]
+            self.board = [[int(x) for x in line.rstrip('\n')] for line in lines[self.size + 1: 2 * self.size + 1]]
+            return piece_type, previous_board, board
+
+    # TODO: rewrite this function
+    def write_output(self, result, path="output.txt"):
+        res = ""
+        if result == "PASS":
+            res = "PASS"
+        else:
+            res += str(result[0]) + ',' + str(result[1])
+
+        with open(path, 'w') as f:
+            f.write(res)
+
 
 if __name__ == "__main__":
     N = 5
