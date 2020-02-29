@@ -31,7 +31,6 @@ class RandomPlayer():
             return random.choice(possible_placements)
 
 
-
 if __name__ == "__main__":
     N = 5
     piece_type, previous_board, board = readInput(N)

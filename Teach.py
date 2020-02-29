@@ -12,7 +12,7 @@ from random_player import RandomPlayer
 
 X = 1
 O = 2
-LEARN_GAMES = 1000000
+LEARN_GAMES = 10**6
 TEST_GAMES = 100
 
 """
@@ -27,24 +27,37 @@ Learning:
 
 def battle(player1, player2, iter, show_result=False):
     p1_stats = [0, 0, 0]  # draw, win, lose
+    p2_stats = [0, 0, 0]
+    timer = time.time()
     for i in range(iter + 1):
         go = GO(5)
-        go.verbose = True
+        go.verbose = False
         go.init_board(5)
-        result = go.play(player1, player2, True)
+        result_p1 = go.play(player1, player2, True)
+        result_p2 = go.play(player2, player1, True)
         batch = 100
+        if i % int(LEARN_GAMES/100) == 0:
+            print('number of iterations = {}'.format(i))
+            print('time = {}'.format(time.time()-timer))
+            timer = time.time()
         if player1.learn:
             player1.update_Qvalues(go)
-            if i % 1000000 == 0:
+            if i % int(LEARN_GAMES/10) == 0:
                 player1.save_dict(i)
         elif player2.learn:
             player2.update_Qvalues(go)
-            if i % 1000000 == 0:
+            if i % int(LEARN_GAMES/10) == 0:
                 player2.save_dict(i)
         if i % batch == 0:
-            track_intelligence(p1_stats, batch)
+            file = "TrackIntP1.txt"
+            track_intelligence(p1_stats, batch, file)
+            file = "TrackIntP2.txt"
+            p2_stats = [p2_stats[0], p2_stats[2], p2_stats[1]]
+            track_intelligence(p2_stats, batch, file)
             p1_stats = [0, 0, 0]
-        p1_stats[result] += 1
+            p2_stats = [0, 0, 0]
+        p1_stats[result_p1] += 1
+        p2_stats[result_p2] += 1
 
     # p1_stats = [round(x / iter * 100.0, 1) for x in p1_stats]
     # if show_result:
@@ -62,8 +75,8 @@ def battle(player1, player2, iter, show_result=False):
 def make_smarter():
     qlearner = Q_learning_agent()
     random_player = RandomPlayer()
-    battle(random_player, qlearner, int(LEARN_GAMES), True)
     battle(qlearner, random_player, int(LEARN_GAMES), True)
+    # battle(qlearner, random_player, int(LEARN_GAMES), True)
 
     # qlearnerpoint2 = copy.deepcopy(qlearner)
     # qlearner.learn = False
@@ -81,11 +94,11 @@ def test():
 
 
 # arbitrarily
-def track_intelligence(stats, batch):
+def track_intelligence(stats, batch, file):
     # stats = [0, 0, 0] piece type of winner of the game (0 if it's a tie)
     stats = [round(x / batch * 100.0, 1) for x in stats]
 
-    with open("Track Intelligence.txt", 'a') as f:
+    with open(file , 'a') as f:
         f.write(str(stats))
         f.write("\n")
 
