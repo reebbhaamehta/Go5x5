@@ -51,8 +51,8 @@ class Q_learning_agent:
         self.identity = piece_type
         self.learn = learn
         self.epsilon = epsilon
-        self.min_epsilon = 0.01
-        self.max_alpha = 1
+        self.min_epsilon = 0.05
+        self.max_alpha = 0.95
 
     def load_dict(self, num_games):
         self.q_values = pickle.load(open("qvalues_{}.pkl".format(num_games), "rb"))

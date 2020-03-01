@@ -3,7 +3,7 @@ import filecmp
 import pickle
 import sys
 import time
-
+import argparse
 from my_player3 import Q_learning_agent
 from game import Game
 from read import readInput, readOutput
@@ -73,15 +73,17 @@ def play_learn_track(go, game_number, player1, player2, p1_stats, p2_stats, batc
         elif result == 2:
             result = 1
         p2_stats[result] += 1
-        if game_number % batch == 0:
+        if game_number % batch == 1:
             track_intelligence(2, p2_stats, batch, file)
             p2_stats = [0, 0, 0]
     return p1_stats, p2_stats
 
 
-def make_smarter():
+def make_smarter(dict_number):
     qlearner = Q_learning_agent()
     random_player = RandomPlayer()
+    if dict_number > 0:
+        qlearner.load_dict(dict_number)
     battle(qlearner, random_player, int(qlearner.LEARN_GAMES), True)
     # battle(qlearner, random_player, int(LEARN_GAMES), True)
     # qlearnerpoint2 = copy.deepcopy(qlearner)
@@ -111,7 +113,10 @@ def track_intelligence(pl_num, stats, batch, file):
 # TODO: make an evaluation function that calculates win rate as a
 #  metric to judge progress, this should happen while training and testing.
 if __name__ == "__main__":
-    make_smarter()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=-1)
+    args = parser.parse_args()
+    make_smarter(args.num)
     # test()
     # TODO: check if update_qvalues is actually updating the correct
     #  values and not just a random variable before throwing it away.
