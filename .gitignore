@@ -2,4 +2,5 @@
 __*
 venv
 *.pkl
+#qvalues_1000000.pkl
 init

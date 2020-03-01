@@ -37,6 +37,7 @@ Learning:
 class Q_learning_agent:
     LEARN_GAMES = 10 ** 6
     REDUCE_E_BY = 0.977
+    INCREASE_A_BY = 0.03
 
     # TODO: make alpha increase over time so that it makes more sense keep a max or min alpha so that
     def __init__(self, piece_type=None, alpha=0.7, gamma=0.9, agent_type="Learning",
@@ -51,6 +52,7 @@ class Q_learning_agent:
         self.learn = learn
         self.epsilon = epsilon
         self.min_epsilon = 0.01
+        self.max_alpha = 1
 
     def load_dict(self, num_games):
         self.q_values = pickle.load(open("qvalues_{}.pkl".format(num_games), "rb"))
@@ -90,6 +92,10 @@ class Q_learning_agent:
 
     def update_epsilon(self):
         self.epsilon = max(self.epsilon * self.REDUCE_E_BY, self.min_epsilon)
+
+    def update_alpha(self):
+        # self.alpha = min(self.max_alpha, self.alpha * self.INCREASE_A_BY)
+        self.alpha = 1 - self.epsilon
 
     def get_input(self, go, piece_type):
         if self.identity != piece_type and go.score(piece_type) <= 0:
@@ -131,6 +137,7 @@ class Q_learning_agent:
 
         if num_game % self.LEARN_GAMES / 100 == 0:
             self.update_epsilon()
+            self.update_alpha()
             print(self.epsilon)
         if num_game % int(self.LEARN_GAMES / 10) == 0:
             self.save_dict(num_game)
