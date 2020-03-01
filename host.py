@@ -26,6 +26,11 @@ class GO:
         self.komi = n / 2  # Komi rule
         self.verbose = False  # Verbose only when there is a manual player
 
+    def state_string(self):
+        """ Encode the current state of the board as a string
+        """
+        return ''.join([str(self.board[i][j]) for i in range(self.size) for j in range(self.size)])
+
     def init_board(self, n):
         '''
         Initialize a board with size n*n.

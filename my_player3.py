@@ -1,6 +1,8 @@
 # 7042208305 :Reebbhaa Mehta
 import copy
 import pickle
+import time
+import random
 
 from read import readInput
 from write import writeOutput
@@ -14,6 +16,7 @@ WIN = 1.0
 LOSS = -1.0
 DRAW = 0.5  # TODO: change this to 0 maybe?
 INVALID_MOVE = -1.0
+REDUCE_E_BY = 0.977
 
 """
 Playing:
@@ -32,9 +35,13 @@ Learning:
 
 
 class Q_learning_agent:
-    # TODO: make alpha increase over time so that it makes more sense
+
+    LEARN_GAMES = 10 ** 4
+    REDUCE_E_BY = 0.977
+
+    # TODO: make alpha increase over time so that it makes more sense keep a max or min alpha so that
     def __init__(self, piece_type=None, alpha=0.7, gamma=0.9, agent_type="Learning",
-                 initial=numpy.random.rand(GO_SIZE, GO_SIZE), learn=True):
+                 initial=numpy.random.rand(GO_SIZE, GO_SIZE), learn=True, epsilon=1):
         self.alpha = alpha
         self.gamma = gamma
         self.initial_values = initial  # numpy.random.rand(GO_SIZE, GO_SIZE)
@@ -44,6 +51,8 @@ class Q_learning_agent:
         self.type = "mine"
         self.identity = piece_type
         self.learn = learn
+        self.epsilon = epsilon
+        self.min_epsilon = 0.01
 
     def load_dict(self, num_games):
         self.q_values = pickle.load(open("qvalues_{}.pkl".format(num_games), "rb"))
@@ -59,6 +68,8 @@ class Q_learning_agent:
             self.q_values[state] = action_mat
         return self.q_values[state]
 
+    # TODO:EPSILON GREEDY POLICY LEARNING: TART WITH EPSILON REALLY LARGE LIKE 90%
+    #  SO YOU EXLPORE 90% OF THE TIME AND DECREASE IT OVER TIME THAT YOU EXPLORE MORE STATES.
     def max_qvalue(self, qvalues, go, piece_type):
         curr_max = -numpy.inf
         valid_places = []
@@ -69,17 +80,18 @@ class Q_learning_agent:
         if not valid_places:
             action = "PASS"
         else:
-            for i, j in valid_places:
-                if qvalues[i][j] > curr_max:
-                    curr_max = qvalues[i][j]
-                    action = (i, j)
+            if random.random() < self.epsilon:
+                action = random.choice(valid_places)
+            else:
 
+                for i, j in valid_places:
+                    if qvalues[i][j] > curr_max:
+                        curr_max = qvalues[i][j]
+                        action = (i, j)
         return action
 
-    # def select_best_action(self, go, piece_type):
-    #     state = str(go.board)
-    #     q_vals = self.add_state(state)
-    #     return self.max_qvalue(q_vals, go, piece_type)
+    def update_epsilon(self):
+        self.epsilon = max(self.epsilon * self.REDUCE_E_BY, self.min_epsilon)
 
     def get_input(self, go, piece_type):
         if self.identity != piece_type and go.score(piece_type) <= 0:
@@ -90,11 +102,11 @@ class Q_learning_agent:
         state = str(go.board)
         q_vals = self.add_state(state)
         action = self.max_qvalue(q_vals, go, piece_type)
-        self.states_to_update.append((go.board, action))
+        self.states_to_update.append((go.state_string(), action))
         # print(self.states_to_update[len(self.states_to_update)-1])
         return action  # returns new state action pair
 
-    def update_Qvalues(self, go):
+    def update_Qvalues(self, go, num_game):
         # after a game update the q table
         # check result to set the reward
         winner = go.judge_winner()
@@ -105,9 +117,7 @@ class Q_learning_agent:
         else:
             reward = LOSS
         max_q_value = -1.0
-        # print(self.q_values)
-        # print(self.states_to_update)
-        # self.states_to_update = self.states_to_update[::-1]
+        self.states_to_update = self.states_to_update[::-1]
         for state, move in self.states_to_update:
             if move != "PASS":
                 curr_stateQ = self.add_state(str(state))
@@ -118,45 +128,15 @@ class Q_learning_agent:
                     curr_stateQ[move[0]][move[1]] = curr_stateQ[move[0]][move[1]] * (1 - self.alpha) \
                                                     + self.alpha * self.gamma * max_q_value
                 max_q_value = numpy.max(curr_stateQ)
+
+        if num_game % self.LEARN_GAMES / 100 == 0:
+            self.update_epsilon()
+            print(self.epsilon)
+        if num_game % int(self.LEARN_GAMES / 10) == 0:
+            self.save_dict(num_game)
         # pickle.dump(self.q_values, open("dict", "wb"))
         # self.save_dict(num_games)
         self.states_to_update = []
-
-
-class Game:
-
-    def __init__(self, size):
-        self.num_moves = 0
-        self.max_move = size * size - 1  # The max movement of a Go game
-        self.komi = size / 2  # Komi rule
-        self.size = size
-        self.board = numpy.zeros(self.size, self.size)
-        self.previous_board = copy.deepcopy(self.board)
-        self.piece_type = None
-
-    def new_board(self):
-        self.board = numpy.zeros(self.size, self.size)
-        self.previous_board = copy.deepcopy(self.board)
-
-    # TODO: rewrite this function
-    def read_input(self):
-        with open("input.txt", 'r') as f:
-            lines = f.readlines()
-            self.piece_type = int(lines[0])
-            self.previous_board = [[int(x) for x in line.rstrip('\n')] for line in lines[1:self.size + 1]]
-            self.board = [[int(x) for x in line.rstrip('\n')] for line in lines[self.size + 1: 2 * self.size + 1]]
-            return piece_type, previous_board, board
-
-    # TODO: rewrite this function
-    def write_output(self, result, path="output.txt"):
-        res = ""
-        if result == "PASS":
-            res = "PASS"
-        else:
-            res += str(result[0]) + ',' + str(result[1])
-
-        with open(path, 'w') as f:
-            f.write(res)
 
 
 if __name__ == "__main__":
@@ -165,8 +145,14 @@ if __name__ == "__main__":
     go = GO(N)
     go.set_board(piece_type, previous_board, board)
     player = Q_learning_agent()
-    player.load_dict(2490000)
-    # if go.game_end(1):
-    #     player.update_Qvalues(go)
+    player.load_dict(100000)
     action = player.get_input(go, piece_type)
     writeOutput(action)
+    # st = time.time()
+    # go = GO(N)
+    # go.set_board(piece_type, previous_board, board)
+    # player = Q_learning_agent()
+    # player.load_dict(100000)
+    # print(player.q_values)
+    # # player.epsilon_greedy(player.q_values[str(go.board)], go, 1)
+    # print(time.time() - st)
