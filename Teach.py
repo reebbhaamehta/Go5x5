@@ -5,7 +5,7 @@ import sys
 import time
 
 from my_player3 import Q_learning_agent
-from host import GO, judge
+from game import Game
 from read import readInput, readOutput
 from write import writeOutput, writeNextInput
 from random_player import RandomPlayer
@@ -25,38 +25,26 @@ Learning:
 
 
 # TODO: FIGURE OUT IF I CAN LEARN FROM THE OTHER PLAYERS MOVES
-def battle(player1, player2, num_games, show_result=False):
+def battle(player1, player2, total_games, show_result=False):
     p1_stats = [0, 0, 0]  # draw, win, lose
     p2_stats = [0, 0, 0]
     timer = time.time()
-    for i in range(num_games + 1):
-        go = GO(5)
+    game_number = 0
+    for i in range(total_games + 1):
+        go = Game(5)
         go.verbose = False
-        go.init_board(5)
-        result_p1 = go.play(player1, player2, True)
-        result_p2 = go.play(player2, player1, True)
+        go.new_board()
         batch = 100
-        if i % int(num_games / 100) == 0:
+        if game_number % int(total_games / 100) == 0:
             print('number of iterations = {}'.format(i))
             print('time = {}'.format(time.time() - timer))
             timer = time.time()
-        if player1.learn:
-            player1.update_Qvalues(go, num_game=i)
-
-        elif player2.learn:
-            player2.update_Qvalues(go, num_game=i)
-
-        if i % batch == 0:
-            file = "TrackIntP1.txt"
-            track_intelligence(p1_stats, batch, file)
-            # file = "TrackIntP2.txt"
-            p2_stats = [p2_stats[0], p2_stats[2], p2_stats[1]] # p2 stats as player one would see it.
-            track_intelligence(p2_stats, batch, file)
-            p1_stats = [0, 0, 0]
-            p2_stats = [0, 0, 0]
-        p1_stats[result_p1] += 1
-        p2_stats[result_p2] += 1
-
+        #  Play game as player1
+        p1_stats, p2_stats = play_learn_track(go, game_number, player1, player2, p1_stats, p2_stats, batch)
+        game_number += 1
+        #  Play game as player2
+        p1_stats, p2_stats = play_learn_track(go, game_number, player2, player1, p1_stats, p2_stats, batch)
+        game_number += 1
     # p1_stats = [round(x / iter * 100.0, 1) for x in p1_stats]
     # if show_result:
     #     print('_' * 60)
@@ -66,8 +54,29 @@ def battle(player1, player2, num_games, show_result=False):
     #                                                              p1_stats[1]).center(50))
     #     print('_' * 60)
     #     print()
+    return
 
-    return p1_stats
+
+def play_learn_track(go, game_number, player1, player2, p1_stats, p2_stats, batch):
+    result = go.play(player1, player2, True)
+    file = "TrackInt.txt"
+    if player1.learn:
+        player1.update_Qvalues(go, num_game=game_number)
+        p1_stats[result] += 1
+        if game_number % batch == 0:
+            track_intelligence(1, p1_stats, batch, file)
+            p1_stats = [0, 0, 0]
+    elif player2.learn:
+        player2.update_Qvalues(go, num_game=game_number)
+        if result == 1:
+            result = 2
+        elif result == 2:
+            result = 1
+        p2_stats[result] += 1
+        if game_number % batch == 0:
+            track_intelligence(2, p2_stats, batch, file)
+            p2_stats = [0, 0, 0]
+    return p1_stats, p2_stats
 
 
 def make_smarter():
@@ -91,12 +100,11 @@ def test():
 
 
 # arbitrarily
-def track_intelligence(stats, batch, file):
+def track_intelligence(pl_num, stats, batch, file):
     # stats = [0, 0, 0] piece type of winner of the game (0 if it's a tie)
     stats = [round(x / batch * 100.0, 1) for x in stats]
-
     with open(file, 'a') as f:
-        f.write(str(stats))
+        f.write(str(pl_num) + "," + ",".join([str(e) for e in stats]))
         f.write("\n")
 
 

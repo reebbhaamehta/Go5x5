@@ -1,12 +1,12 @@
 # 7042208305 :Reebbhaa Mehta
 import copy
+import math
 import pickle
 import time
 import random
 
 from read import readInput
 from write import writeOutput
-import json
 from game import Game
 import numpy
 import json
@@ -35,7 +35,6 @@ Learning:
 
 
 class Q_learning_agent:
-
     LEARN_GAMES = 10 ** 6
     REDUCE_E_BY = 0.977
 
@@ -44,7 +43,6 @@ class Q_learning_agent:
                  initial=numpy.random.rand(GO_SIZE, GO_SIZE), learn=True, epsilon=1):
         self.alpha = alpha
         self.gamma = gamma
-        self.initial_values = initial  # numpy.random.rand(GO_SIZE, GO_SIZE)
         self.q_values = {}
         self.states_to_update = []
         self.agent_type = agent_type  # either learning or playing
@@ -62,16 +60,17 @@ class Q_learning_agent:
 
     def add_state(self, state):
         if state not in self.q_values:
-            # action_mat = numpy.zeros((5, 5))
-            # action_mat.fill(self.initial_values)
-            action_mat = self.initial_values
-            self.q_values[state] = action_mat
+            action_q = {}
+            for i in range(GO_SIZE):
+                for j in range(GO_SIZE):
+                    poss_action = (i, j)
+                    action_q[poss_action] = random.random()
+            action_q["PASS"] = random.random()
+            self.q_values[state] = action_q
         return self.q_values[state]
 
-    # TODO:EPSILON GREEDY POLICY LEARNING: TART WITH EPSILON REALLY LARGE LIKE 90%
-    #  SO YOU EXLPORE 90% OF THE TIME AND DECREASE IT OVER TIME THAT YOU EXPLORE MORE STATES.
-    def max_qvalue(self, qvalues, go, piece_type):
-        curr_max = -numpy.inf
+    def max_qvalue(self, action_q_vals, go, piece_type):
+        curr_max = -math.inf
         valid_places = []
         for i in range(GO_SIZE):
             for j in range(GO_SIZE):
@@ -83,10 +82,9 @@ class Q_learning_agent:
             if random.random() < self.epsilon:
                 action = random.choice(valid_places)
             else:
-
                 for i, j in valid_places:
-                    if qvalues[i][j] > curr_max:
-                        curr_max = qvalues[i][j]
+                    if action_q_vals[(i, j)] > curr_max:
+                        curr_max = action_q_vals[(i, j)]
                         action = (i, j)
         return action
 
@@ -98,13 +96,14 @@ class Q_learning_agent:
             self.identity = piece_type
         if go.game_end(piece_type):
             return
-        # action = self.select_best_action(go, piece_type)
-        state = str(go.board)
-        q_vals = self.add_state(state)
-        action = self.max_qvalue(q_vals, go, piece_type)
+        state = go.state_string()
+        action_q_vals = self.add_state(state)
+        action = self.max_qvalue(action_q_vals, go, piece_type)
+        # if action == "PASS":
+        #     print(action)
+        #     print((go.state_string(), action))
         self.states_to_update.append((go.state_string(), action))
-        # print(self.states_to_update[len(self.states_to_update)-1])
-        return action  # returns new state action pair
+        return action  # returns new state action pair or PASS
 
     def update_Qvalues(self, go, num_game):
         # after a game update the q table
@@ -117,17 +116,18 @@ class Q_learning_agent:
         else:
             reward = LOSS
         max_q_value = -1.0
-        self.states_to_update = self.states_to_update[::-1]
+        self.states_to_update.reverse()
         for state, move in self.states_to_update:
-            if move != "PASS":
-                curr_stateQ = self.add_state(str(state))
 
-                if max_q_value < 0:
-                    curr_stateQ[move[0]][move[1]] = reward
-                else:
-                    curr_stateQ[move[0]][move[1]] = curr_stateQ[move[0]][move[1]] * (1 - self.alpha) \
-                                                    + self.alpha * self.gamma * max_q_value
-                max_q_value = numpy.max(curr_stateQ)
+            curr_stateQ = self.add_state(state)
+            # if move == "PASS":
+            #     print(curr_stateQ[move])
+            if max_q_value < 0:
+                curr_stateQ[move] = reward
+            else:
+                curr_stateQ[move] = curr_stateQ[move] * (1 - self.alpha) \
+                                                + self.alpha * self.gamma * max_q_value
+            max_q_value = max(curr_stateQ.values())
 
         if num_game % self.LEARN_GAMES / 100 == 0:
             self.update_epsilon()
@@ -141,13 +141,13 @@ class Q_learning_agent:
 
 if __name__ == "__main__":
     N = 5
-    piece_type, previous_board, board = readInput(N)
-    go = Game(N)
-    go.set_board(piece_type, previous_board, board)
+    game_piece_type, previous_board, board = readInput(N)
+    go_game = Game(N)
+    go_game.set_board(game_piece_type, previous_board, board)
     player = Q_learning_agent()
     player.load_dict(100000)
-    action = player.get_input(go, piece_type)
-    writeOutput(action)
+    next_action = player.get_input(go_game, game_piece_type)
+    writeOutput(next_action)
     # st = time.time()
     # go = GO(N)
     # go.set_board(piece_type, previous_board, board)

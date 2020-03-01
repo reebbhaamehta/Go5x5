@@ -3,6 +3,7 @@ import copy
 import numpy
 
 
+# TODO:Rewrite entire class
 class Game:
 
     def __init__(self, size):
@@ -15,25 +16,25 @@ class Game:
         self.size = size
         self.board = numpy.zeros((self.size, self.size))
         self.previous_board = copy.deepcopy(self.board)
+        self.X_move = True
 
     def new_board(self):
-        self.board = numpy.zeros(self.size, self.size)
+        self.board = [[0 for x in range(self.size)] for y in range(self.size)]  # Empty space marked as 0
         self.previous_board = copy.deepcopy(self.board)
 
-    # TODO: rewrite this function
     def state_string(self):
         """ Encode the current state of the board as a string
         """
         return ''.join([str(self.board[i][j]) for i in range(self.size) for j in range(self.size)])
 
     def game_end(self, piece_type, action="MOVE"):
-        '''
+        """
         Check if the game should end.
 
         :param piece_type: 1('X') or 2('O').
         :param action: "MOVE" or "PASS".
         :return: boolean indicating whether the game should end.
-        '''
+        """
 
         # Case 1: max move reached
         if self.n_move >= self.max_move:
@@ -44,12 +45,12 @@ class Game:
         return False
 
     def score(self, piece_type):
-        '''
+        """
         Get score of a player by counting the number of stones.
 
         :param piece_type: 1('X') or 2('O').
         :return: boolean indicating whether the game should end.
-        '''
+        """
 
         board = self.board
         cnt = 0
@@ -59,9 +60,8 @@ class Game:
                     cnt += 1
         return cnt
 
-    # TODO: rewrite this function
     def valid_place_check(self, i, j, piece_type, test_check=False):
-        '''
+        """
         Check whether a placement is valid.
 
         :param i: row number of the board.
@@ -69,7 +69,7 @@ class Game:
         :param piece_type: 1(white piece) or 2(black piece).
         :param test_check: boolean if it's a test check.
         :return: boolean indicating whether the placement is valid.
-        '''
+        """
         board = self.board
         verbose = self.verbose
         if test_check:
@@ -116,7 +116,6 @@ class Game:
                 return False
         return True
 
-    # TODO: rewrite this function
     def compare_board(self, board1, board2):
         for i in range(self.size):
             for j in range(self.size):
@@ -124,14 +123,13 @@ class Game:
                     return False
         return True
 
-    # TODO: rewrite this function
     def find_died_pieces(self, piece_type):
-        '''
+        """
         Find the died stones that has no liberty in the board for a given piece type.
 
         :param piece_type: 1('X') or 2('O').
         :return: a list containing the dead pieces row and column(row, column).
-        '''
+        """
         board = self.board
         died_pieces = []
 
@@ -144,42 +142,39 @@ class Game:
                         died_pieces.append((i, j))
         return died_pieces
 
-    # TODO: rewrite this function
     def remove_certain_pieces(self, positions):
-        '''
+        """
         Remove the stones of certain locations.
 
         :param positions: a list containing the pieces to be removed row and column(row, column)
         :return: None.
-        '''
+        """
         board = self.board
         for piece in positions:
             board[piece[0]][piece[1]] = 0
         self.board = board
 
-    # TODO: rewrite this function
     def remove_died_pieces(self, piece_type):
-        '''
+        """
         Remove the dead stones in the board.
 
         :param piece_type: 1('X') or 2('O').
         :return: locations of dead pieces.
-        '''
+        """
 
         died_pieces = self.find_died_pieces(piece_type)
         if not died_pieces: return []
         self.remove_certain_pieces(died_pieces)
         return died_pieces
 
-    # TODO: rewrite this function
     def detect_neighbor(self, i, j):
-        '''
+        """
         Detect all the neighbors of a given stone.
 
         :param i: row number of the board.
         :param j: column number of the board.
         :return: a list containing the neighbors row and column (row, column) of position (i, j).
-        '''
+        """
         board = self.board
         neighbors = []
         # Detect borders and add neighbor coordinates
@@ -189,15 +184,14 @@ class Game:
         if j < len(board) - 1: neighbors.append((i, j + 1))
         return neighbors
 
-    # TODO: rewrite this function
     def detect_neighbor_ally(self, i, j):
-        '''
+        """
         Detect the neighbor allies of a given stone.
 
         :param i: row number of the board.
         :param j: column number of the board.
         :return: a list containing the neighbored allies row and column (row, column) of position (i, j).
-        '''
+        """
         board = self.board
         neighbors = self.detect_neighbor(i, j)  # Detect neighbors
         group_allies = []
@@ -208,15 +202,14 @@ class Game:
                 group_allies.append(piece)
         return group_allies
 
-    # TODO: rewrite this function
     def ally_dfs(self, i, j):
-        '''
+        """
         Using DFS to search for all allies of a given stone.
 
         :param i: row number of the board.
         :param j: column number of the board.
         :return: a list containing the all allies row and column (row, column) of position (i, j).
-        '''
+        """
         stack = [(i, j)]  # stack for DFS serach
         ally_members = []  # record allies positions during the search
         while stack:
@@ -228,15 +221,14 @@ class Game:
                     stack.append(ally)
         return ally_members
 
-    # TODO: rewrite this function
     def find_liberty(self, i, j):
-        '''
+        """
         Find liberty of a given stone. If a group of allied stones has no liberty, they all die.
 
         :param i: row number of the board.
         :param j: column number of the board.
         :return: boolean indicating whether the given stone still has liberty.
-        '''
+        """
         board = self.board
         ally_members = self.ally_dfs(i, j)
         for member in ally_members:
@@ -249,12 +241,12 @@ class Game:
         return False
 
     def set_board(self, piece_type, previous_board, board):
-        '''
+        """
         Initialize board status.
         :param previous_board: previous board state.
         :param board: current board state.
         :return: None.
-        '''
+        """
 
         # 'X' pieces marked as 1
         # 'O' pieces marked as 2
@@ -268,6 +260,112 @@ class Game:
         self.previous_board = previous_board
         self.board = board
 
+    def place_chess(self, i, j, piece_type):
+        """
+        Place a chess stone in the board.
+
+        :param i: row number of the board.
+        :param j: column number of the board.
+        :param piece_type: 1('X') or 2('O').
+        :return: boolean indicating whether the placement is valid.
+        """
+        board = self.board
+
+        valid_place = self.valid_place_check(i, j, piece_type)
+        if not valid_place:
+            return False
+        self.previous_board = copy.deepcopy(board)
+        board[i][j] = piece_type
+        self.board = board
+        return True
+
+    def judge_winner(self):
+        """
+        Judge the winner of the game by number of pieces for each player.
+
+        :param: None.
+        :return: piece type of winner of the game (0 if it's a tie).
+        """
+
+        cnt_1 = self.score(1)
+        cnt_2 = self.score(2)
+        if cnt_1 > cnt_2 + self.komi:
+            return 1
+        elif cnt_1 < cnt_2 + self.komi:
+            return 2
+        else:
+            return 0
+
+    def play(self, player1, player2, verbose=False):
+        """
+        The game starts!
+
+        :param player1: Player instance.
+        :param player2: Player instance.
+        :param verbose: whether print input hint and error information
+        :return: piece type of winner of the game (0 if it's a tie).
+        """
+        self.new_board()
+        # Print input hints and error message if there is a manual player
+        if player1.type == 'manual' or player2.type == 'manual':
+            self.verbose = True
+            print('----------Input "exit" to exit the program----------')
+            print('X stands for black chess, O stands for white chess.')
+            self.visualize_board()
+
+        verbose = self.verbose
+        # Game starts!
+        while 1:
+            piece_type = 1 if self.X_move else 2
+
+            # Judge if the game should end
+            if self.game_end(piece_type):
+                result = self.judge_winner()
+                if verbose:
+                    print('Game ended.')
+                    if result == 0:
+                        print('The game is a tie.')
+                    else:
+                        print('The winner is {}'.format('X' if result == 1 else 'O'))
+                return result
+
+            if verbose:
+                player = "X" if piece_type == 1 else "O"
+                print(player + " makes move...")
+
+            # Game continues
+            if piece_type == 1:
+                action = player1.get_input(self, piece_type)
+            else:
+                action = player2.get_input(self, piece_type)
+
+            if verbose:
+                player = "X" if piece_type == 1 else "O"
+
+            if action != "PASS":
+                # If invalid input, continue the loop. Else it places a chess on the board.
+                if not self.place_chess(action[0], action[1], piece_type):
+                    print('return FALSE')
+                    if piece_type == 1:
+                        print("X turn: player1")
+                    elif piece_type == 2:
+                        print("O turn: player2")
+                    if verbose:
+                        self.visualize_board()
+                    # continue
+                    return -1  # return -1 if the move is invalid for training purposes
+
+                self.died_pieces = self.remove_died_pieces(3 - piece_type)  # Remove the dead pieces of opponent
+            else:
+                self.previous_board = copy.deepcopy(self.board)
+
+            if verbose:
+                self.visualize_board()  # Visualize the board again
+                print()
+
+            self.n_move += 1
+            self.X_move = not self.X_move  # Players take turn
+
     def read_input(self):
         with open("input.txt", 'r') as f:
             lines = f.readlines()
@@ -276,18 +374,18 @@ class Game:
             # index=0
             # for line in lines[1:self.size + 1]:
             #     line = line.rstrip("\n")
-            #     previous_board1.append([])
+            #     previous_board.append([])
             #     for letter in line:
-            #         previous_board1[index].append(int(letter))
+            #         previous_board[index].append(int(letter))
             #     index +=1
             self.board = [[int(x) for x in line.rstrip('\n')] for line in lines[self.size + 1: 2 * self.size + 1]]
-            # current_board1 = []
+            # self.board = []
             # index=0
             # for line in lines[self.size + 1:2 * self.size + 1]:
             #     line = line.rstrip("\n")
-            #     current_board1.append([])
+            #     self.board.append([])
             #     for letter in line:
-            #         current_board1[index].append(int(letter))
+            #         self.board[index].append(int(letter))
             #     index +=1
             return self.piece_type, self.previous_board, self.board
 
