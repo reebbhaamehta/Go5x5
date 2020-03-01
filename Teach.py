@@ -12,7 +12,6 @@ from random_player import RandomPlayer
 
 X = 1
 O = 2
-LEARN_GAMES = 10 ** 6
 TEST_GAMES = 100
 
 """
@@ -26,18 +25,18 @@ Learning:
 
 
 # TODO: FIGURE OUT IF I CAN LEARN FROM THE OTHER PLAYERS MOVES
-def battle(player1, player2, iter, show_result=False):
+def battle(player1, player2, num_games, show_result=False):
     p1_stats = [0, 0, 0]  # draw, win, lose
     p2_stats = [0, 0, 0]
     timer = time.time()
-    for i in range(iter + 1):
+    for i in range(num_games + 1):
         go = GO(5)
         go.verbose = False
         go.init_board(5)
         result_p1 = go.play(player1, player2, True)
         result_p2 = go.play(player2, player1, True)
         batch = 100
-        if i % int(iter / 100) == 0:
+        if i % int(num_games / 100) == 0:
             print('number of iterations = {}'.format(i))
             print('time = {}'.format(time.time() - timer))
             timer = time.time()

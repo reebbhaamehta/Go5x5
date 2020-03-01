@@ -6,6 +6,7 @@ import numpy
 class Game:
 
     def __init__(self, size):
+        self.n_move = 0
         self.died_pieces = None
         self.verbose = None
         self.num_moves = 0
@@ -14,7 +15,6 @@ class Game:
         self.size = size
         self.board = numpy.zeros((self.size, self.size))
         self.previous_board = copy.deepcopy(self.board)
-        self.piece_type = None
 
     def new_board(self):
         self.board = numpy.zeros(self.size, self.size)
@@ -25,6 +25,39 @@ class Game:
         """ Encode the current state of the board as a string
         """
         return ''.join([str(self.board[i][j]) for i in range(self.size) for j in range(self.size)])
+
+    def game_end(self, piece_type, action="MOVE"):
+        '''
+        Check if the game should end.
+
+        :param piece_type: 1('X') or 2('O').
+        :param action: "MOVE" or "PASS".
+        :return: boolean indicating whether the game should end.
+        '''
+
+        # Case 1: max move reached
+        if self.n_move >= self.max_move:
+            return True
+        # Case 2: two players all pass the move.
+        if self.compare_board(self.previous_board, self.board) and action == "PASS":
+            return True
+        return False
+
+    def score(self, piece_type):
+        '''
+        Get score of a player by counting the number of stones.
+
+        :param piece_type: 1('X') or 2('O').
+        :return: boolean indicating whether the game should end.
+        '''
+
+        board = self.board
+        cnt = 0
+        for i in range(self.size):
+            for j in range(self.size):
+                if board[i][j] == piece_type:
+                    cnt += 1
+        return cnt
 
     # TODO: rewrite this function
     def valid_place_check(self, i, j, piece_type, test_check=False):
@@ -214,6 +247,26 @@ class Game:
                     return True
         # If none of the pieces in a allied group has an empty space, it has no liberty
         return False
+
+    def set_board(self, piece_type, previous_board, board):
+        '''
+        Initialize board status.
+        :param previous_board: previous board state.
+        :param board: current board state.
+        :return: None.
+        '''
+
+        # 'X' pieces marked as 1
+        # 'O' pieces marked as 2
+
+        for i in range(self.size):
+            for j in range(self.size):
+                if previous_board[i][j] == piece_type and board[i][j] != piece_type:
+                    self.died_pieces.append((i, j))
+
+        # self.piece_type = piece_type
+        self.previous_board = previous_board
+        self.board = board
 
     def read_input(self):
         with open("input.txt", 'r') as f:

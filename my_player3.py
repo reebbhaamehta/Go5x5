@@ -7,7 +7,7 @@ import random
 from read import readInput
 from write import writeOutput
 import json
-from host import GO
+from game import Game
 import numpy
 import json
 
@@ -36,7 +36,7 @@ Learning:
 
 class Q_learning_agent:
 
-    LEARN_GAMES = 10 ** 4
+    LEARN_GAMES = 10 ** 6
     REDUCE_E_BY = 0.977
 
     # TODO: make alpha increase over time so that it makes more sense keep a max or min alpha so that
@@ -142,7 +142,7 @@ class Q_learning_agent:
 if __name__ == "__main__":
     N = 5
     piece_type, previous_board, board = readInput(N)
-    go = GO(N)
+    go = Game(N)
     go.set_board(piece_type, previous_board, board)
     player = Q_learning_agent()
     player.load_dict(100000)
