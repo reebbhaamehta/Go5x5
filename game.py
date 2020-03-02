@@ -296,12 +296,32 @@ class Game:
         else:
             return 0
 
+    def visualize_board(self):
+        '''
+        Visualize the board.
+
+        :return: None
+        '''
+        board = self.board
+
+        print('-' * len(board) * 2)
+        for i in range(len(board)):
+            for j in range(len(board)):
+                if board[i][j] == 0:
+                    print(' ', end=' ')
+                elif board[i][j] == 1:
+                    print('X', end=' ')
+                else:
+                    print('O', end=' ')
+            print()
+        print('-' * len(board) * 2)
+
     def play(self, player1, player2, verbose=False):
         """
         The game starts!
 
-        :param player1: Player instance.
-        :param player2: Player instance.
+        :param player1: Player instance. always X
+        :param player2: Player instance. always O
         :param verbose: whether print input hint and error information
         :return: piece type of winner of the game (0 if it's a tie).
         """

@@ -52,7 +52,23 @@ class Q_learning_agent:
         self.learn = learn
         self.epsilon = epsilon
         self.min_epsilon = 0.05
+        self.policy = {}
         self.max_alpha = 0.95
+        self.policy_dump_time = 0
+        
+    def save_policy(self):
+        max_q = -math.inf
+        for states in self.q_values:
+            action_q = self.q_values[states]
+            for action in action_q:
+                if action_q[action] > max_q:
+                    max_q = action_q[action]
+                    self.policy[states] = action
+        self.policy_dump_time = int(time.time())
+        pickle.dump(self.policy, open("policy_learned_{}.pkl".format(self.policy_dump_time), "wb"))
+
+    def load_policy(self):
+        self.policy = pickle.load(open("policy_learned_{}.pkl".format(self.policy_dump_time), "rb"))
 
     def load_dict(self, num_games):
         self.q_values = pickle.load(open("qvalues_{}.pkl".format(num_games), "rb"))
@@ -138,9 +154,9 @@ class Q_learning_agent:
         if num_game % self.LEARN_GAMES / 100 == 0:
             self.update_epsilon()
             self.update_alpha()
-            print(self.epsilon)
         if num_game % int(self.LEARN_GAMES / 10) == 0:
             self.save_dict(num_game)
+            self.save_policy()
         # pickle.dump(self.q_values, open("dict", "wb"))
         # self.save_dict(num_games)
         self.states_to_update = []
