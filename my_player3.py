@@ -154,6 +154,8 @@ class Q_learning_agent:
         if num_game % self.LEARN_GAMES / 100 == 0:
             self.update_epsilon()
             self.update_alpha()
+            print(self.q_values)
+            exit()
         if num_game % int(self.LEARN_GAMES / 10) == 0:
             self.save_dict(num_game)
             self.save_policy()
