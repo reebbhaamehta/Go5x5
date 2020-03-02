@@ -40,9 +40,8 @@ class Q_learning_agent:
     INCREASE_A_BY = 0.03
 
     # TODO: make alpha increase over time so that it makes more sense keep a max or min alpha so that
-    def __init__(self, piece_type=None, alpha=0.7, gamma=0.9, agent_type="Learning",
-                 initial=numpy.random.rand(GO_SIZE, GO_SIZE), learn=True, epsilon=1):
-        self.alpha = alpha
+    def __init__(self, piece_type=None, epsilon=1, alpha = 0, gamma=0.9, agent_type="Learning",
+                 initial=numpy.random.rand(GO_SIZE, GO_SIZE), learn=True):
         self.gamma = gamma
         self.q_values = {}
         self.states_to_update = []
@@ -51,6 +50,7 @@ class Q_learning_agent:
         self.identity = piece_type
         self.learn = learn
         self.epsilon = epsilon
+        self.alpha = alpha
         self.min_epsilon = 0.05
         self.policy = {}
         self.max_alpha = 0.95
