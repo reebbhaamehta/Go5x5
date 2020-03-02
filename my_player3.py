@@ -141,21 +141,20 @@ class Q_learning_agent:
         self.states_to_update.reverse()
         for state, move in self.states_to_update:
 
-            curr_stateQ = self.add_state(state)
+            self.q_values[state] = self.add_state(state)
             # if move == "PASS":
             #     print(curr_stateQ[move])
             if max_q_value < 0:
-                curr_stateQ[move] = reward
+                self.q_values[state][move] = reward
             else:
-                curr_stateQ[move] = curr_stateQ[move] * (1 - self.alpha) \
+                self.q_values[state][move] = self.q_values[state][move] * (1 - self.alpha) \
                                                 + self.alpha * self.gamma * max_q_value
-            max_q_value = max(curr_stateQ.values())
+            max_q_value = max(self.q_values[state].values())
+            # self.q_values[state][move] = curr_stateQ[move]
 
         if num_game % self.LEARN_GAMES / 100 == 0:
             self.update_epsilon()
             self.update_alpha()
-            print(self.q_values)
-            exit()
         if num_game % int(self.LEARN_GAMES / 10) == 0:
             self.save_dict(num_game)
             self.save_policy()
