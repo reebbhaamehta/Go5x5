@@ -56,6 +56,7 @@ def play_learn_track(go, game_number, player1, player2, p1_stats, p2_stats, batc
     file = "TrackInt.txt"
     if player1.learn:
         player1.update_Qvalues(go, num_game=game_number)
+        # print("player1 epsilon = {}".format(player1.epsilon))
         p1_stats[result] += 1
         if game_number % batch == 0:
             epsilon = player1.epsilon
@@ -63,6 +64,7 @@ def play_learn_track(go, game_number, player1, player2, p1_stats, p2_stats, batc
             p1_stats = [0, 0, 0]
     elif player2.learn:
         player2.update_Qvalues(go, num_game=game_number)
+        # print("player2 epsilon = {}".format(player2.epsilon))
         if result == 1:
             result = 2
         elif result == 2:
@@ -81,11 +83,6 @@ def make_smarter(dict_number):
     if dict_number > 0:
         qlearner.load_dict(dict_number)
     battle(qlearner, random_player, int(qlearner.LEARN_GAMES), False)
-    # battle(qlearner, random_player, int(LEARN_GAMES), True)
-    # qlearnerpoint2 = copy.deepcopy(qlearner)
-    # qlearner.learn = False
-    # battle(go, qlearnerpoint2, qlearner, int(LEARN_GAMES / 4), True)
-    # battle(go, qlearner, qlearnerpoint2, int(LEARN_GAMES / 4), True)
 
 
 def test():
@@ -114,23 +111,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
     make_smarter(args.num)
     # test()
-# test()
 # TODO: check if update_qvalues is actually updating the correct
 #  values and not just a random variable before throwing it away.
 #  Checking briefly on Feb 27. I believe the q values are being
-#  updated correctly.
+#  updated correctly. Passing is now explicit March 1st.
 
 # TODO: implement my own functions and classes to account for
 #  reading current / previous state and writing output files,
 #  to check if the move I am about to make is valid and all
 #  the helper functions that are required to check those conditions.
 
-# file = "qlearner.txt"
-# with open(file, 'w') as f:
-#     f.write(str(qlearner.q_values))
-# qlearner_100games = Q_learning_agent()
-# qlearner_100games.load_dict()
-# file = "qlearner_100.txt"
-# with open(file, 'w') as f:
-#     f.write(str(qlearner_100games.q_values))
-# print(filecmp.cmp("qlearner.txt", "qlearner_100.txt"))

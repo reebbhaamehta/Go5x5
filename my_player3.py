@@ -152,7 +152,7 @@ class Q_learning_agent:
             max_q_value = max(self.q_values[state].values())
             # self.q_values[state][move] = curr_stateQ[move]
 
-        if num_game % self.LEARN_GAMES / 100 == 0:
+        if num_game % int(self.LEARN_GAMES / 100000) == 0:
             self.update_epsilon()
             self.update_alpha()
         if num_game % int(self.LEARN_GAMES / 10) == 0:

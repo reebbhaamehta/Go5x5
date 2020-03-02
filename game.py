@@ -22,10 +22,13 @@ class Game:
         self.board = [[0 for x in range(self.size)] for y in range(self.size)]  # Empty space marked as 0
         self.previous_board = copy.deepcopy(self.board)
 
-    def state_string(self):
+    def state_string(self, state_type="Current"):
         """ Encode the current state of the board as a string
         """
-        return ''.join([str(self.board[i][j]) for i in range(self.size) for j in range(self.size)])
+        if state_type == "Current":
+            return ''.join([str(self.board[i][j]) for i in range(self.size) for j in range(self.size)])
+        elif state_type == "Previous":
+            return ''.join([str(self.previous_board[i][j]) for i in range(self.size) for j in range(self.size)])
 
     def game_end(self, piece_type, action="MOVE"):
         """

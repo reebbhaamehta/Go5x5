@@ -35,24 +35,60 @@ also be called a payoff function. The utility can be calculated by the current s
 
 """
 
-class Node:
-    def __init__(self):
-        self.state = None
-        self.node_type = None
+
+class TreeNode:
+    def __init__(self, game):
+        self.parent = None
+        self.state = game.state_string()
+        self.node_type = None  # min or max
+        self.children = [{}]
+        self.value = None
+
+    def add_child(self, game, agent):
+        new_node = TreeNode(game)
+        new_node.parent = self
+        new_node.value = new_node.set_child_value(game, agent)
+        return new_node
+
+    def set_child_value(self, game, agent):
+        if self.node_type == "min":  # get adversaries score for min node
+            self.value = game.score(1 if agent.identity is 2 else 2)
+        elif self.node_type == "max":
+            self.value = game.score(agent.identity)
+
+    def is_root(self):
+        if self.parent is None:
+            return True
+        return False
+
+    def is_leaf(self):
+        if not self.children:
+            return True
+        return False
+
+    def get_tree_root(self):
+        current = self
+        while current.parent is not None:
+            current = current.parent
+        return current
 
 
 class Minimax_agent:
-    LEARN_GAMES = 10 ** 6
-    REDUCE_E_BY = 0.977
-    INCREASE_A_BY = 0.03
 
-    # TODO: make alpha increase over time so that it makes more sense keep a max or min alpha so that
-    def __init__(self, max_depth, piece_type=None, agent_type="Minimax"):
+    def __init__(self, go, max_depth=4, piece_type=None, agent_type="Minimax"):
         self.max_depth = max_depth
-        self.identity = piece_type
+        self.identity = piece_type  # piece_type = 1 if X and 2 if O
         self.node_expanded = 0
         self.curr_score = 0
         self.agent_type = agent_type
+        self.game_tree_root = self.create_game_tree(go)
+
+    def create_game_tree(self, go):
+        node = TreeNode()
+        actions = self.possible_actions(go.state_string("Current"))
+        for action in actions:
+            node.add_child(go, self)
+        return node
 
     def evaluation_function(self, go, piece_type):
         score = go.score(piece_type)
@@ -69,7 +105,7 @@ class Minimax_agent:
     def result_function(self):
         return 0
 
-    def get_input(self):
+    def get_input(self, go):
         pass
 
     def min_alpha_beta(self, alpha, beta):
@@ -146,8 +182,8 @@ if __name__ == "__main__":
     game_piece_type, previous_board, board = readInput(N)
     go_game = Game(N)
     go_game.set_board(game_piece_type, previous_board, board)
-    player = Minimax_agent()
-    next_action = player.get_input(go_game, game_piece_type)
+    player = Minimax_agent(go_game)
+    next_action = player.get_input(go_game)
     writeOutput(next_action)
     # st = time.time()
     # go = GO(N)
