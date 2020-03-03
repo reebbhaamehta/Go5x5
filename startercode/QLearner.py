@@ -6,7 +6,7 @@ LOSS_REWARD = 0.0
 
 
 class QLearner:
-    GAME_NUM = 100000
+    GAME_NUM = 10000
 
     def __init__(self, alpha=.7, gamma=.9, initial_value=0.5, side=None):
         if not (0 < gamma <= 1):
@@ -18,6 +18,7 @@ class QLearner:
         self.q_values = {}
         self.history_states = []
         self.initial_value = initial_value
+        self.num_game = 0
         # self.state = ?
 
     def set_side(self, side):
@@ -74,10 +75,12 @@ class QLearner:
         max_q_value = -1.0
         for hist in self.history_states:
             state, move = hist
-            q = self.Q(state)
+            # q = self.Q(state)
+            self.q_values[state] = self.Q(state)
             if max_q_value < 0:
-                q[move[0]][move[1]] = reward
+                self.q_values[state][move[0]][move[1]] = reward
             else:
-                q[move[0]][move[1]] = q[move[0]][move[1]] * (1 - self.alpha) + self.alpha * self.gamma * max_q_value
-            max_q_value = np.max(q)
+                self.q_values[state][move[0]][move[1]] = self.q_values[state][move[0]][move[1]] * (1 - self.alpha) + self.alpha * self.gamma * max_q_value
+            max_q_value = np.max(self.q_values[state])
         self.history_states = []
+

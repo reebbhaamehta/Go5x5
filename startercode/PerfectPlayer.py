@@ -14,6 +14,8 @@ class PerfectPlayer:
     def __init__(self, side=None):
         self.side = side
         self.transition = {}
+        self.num_game = 0
+
 
     def set_side(self, side):
         self.side = side
