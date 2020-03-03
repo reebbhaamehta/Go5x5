@@ -13,6 +13,8 @@ from random_player import RandomPlayer
 X = 1
 O = 2
 TEST_GAMES = 100
+GAME_SIZE = 5
+
 
 """
 Learning:
@@ -31,7 +33,7 @@ def battle(player1, player2, total_games, show_result=False):
     timer = time.time()
     game_number = 0
     for i in range(total_games + 1):
-        go = Game(5)
+        go = Game(GAME_SIZE)
         go.verbose = show_result
         go.new_board()
         batch = 100
@@ -43,7 +45,7 @@ def battle(player1, player2, total_games, show_result=False):
         p1_stats, p2_stats = play_learn_track(go, game_number, player1, player2, p1_stats, p2_stats, batch)
         game_number += 1
         #  Play game as player2
-        go = Game(5)
+        go = Game(GAME_SIZE)
         go.verbose = show_result
         go.new_board()
         p1_stats, p2_stats = play_learn_track(go, game_number, player2, player1, p1_stats, p2_stats, batch)
@@ -80,6 +82,9 @@ def play_learn_track(go, game_number, player1, player2, p1_stats, p2_stats, batc
 def make_smarter(dict_number):
     qlearner = Q_learning_agent()
     random_player = RandomPlayer()
+    qlearner.alpha = 0.7
+    qlearner.epsilon = 0
+    qlearner.varyA_E = False
     if dict_number > 0:
         qlearner.load_dict(dict_number)
     battle(qlearner, random_player, int(qlearner.LEARN_GAMES), False)

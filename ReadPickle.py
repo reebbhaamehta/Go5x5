@@ -42,7 +42,7 @@ def read_qvals(file_old, file_new):
 
 
 def policies(file_old, file_new):
-    file_old = "policy_learned_0E_1583192958.pkl"
+    # file_old = "policy_learned_0E_1583192958.pkl"
     with open(file_old, 'rb') as pickle_file:
         policy_dict = pickle.load(pickle_file)
     states = []
@@ -51,7 +51,7 @@ def policies(file_old, file_new):
         states.append(random.choice(list(policy_dict)))
         policy.append(policy_dict[states[i]])
 
-    file_new = "policy_learned_0E_1583194212.pkl"  #"policy_learned_0E_1583192958.pkl"
+    # file_new = "policy_learned_0E_1583194212.pkl"  #"policy_learned_0E_1583192958.pkl"
     with open(file_new, 'rb') as pickle_file:
         policy_dict = pickle.load(pickle_file)
 

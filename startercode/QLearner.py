@@ -62,6 +62,9 @@ class QLearner:
         self.history_states.append((board.encode_state(), (row, col)))
         return board.move(row, col, self.side)
 
+    def set_win_rates(self, wins):
+        pass
+
     def learn(self, board):
         """ when games ended, this method will be called to update the qvalues
         """

@@ -19,6 +19,9 @@ class SmartPlayer:
     def learn(self, board):
         pass
 
+    def set_win_rates(self, wins):
+        pass
+
     def move(self, board):
         if board.game_over():
             return

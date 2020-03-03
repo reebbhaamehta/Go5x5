@@ -38,6 +38,7 @@ class Q_learning_agent:
     REDUCE_E_BY = 0.977
     INCREASE_A_BY = 30
 
+
     def __init__(self, piece_type=None, epsilon=0.9, alpha=0.1, gamma=0.9, agent_type="Learning",
                  initial=numpy.random.rand(GO_SIZE, GO_SIZE), learn=True):
         self.gamma = gamma
@@ -80,7 +81,7 @@ class Q_learning_agent:
 
     def save_dict(self, num_games):
         pickle.dump(self.q_values, open("qvalues_{}.pkl".format(num_games), "wb"))
-#TODO: BUG IN CODE BELOW: MAYBE?
+
     def add_state(self, state):
         if state not in self.q_values:
             action_q = {}
@@ -162,7 +163,7 @@ class Q_learning_agent:
             self.update_epsilon()
             self.update_alpha()
         if num_game % int(self.LEARN_GAMES / 100) == 0:
-            # self.save_dict(num_game)
+            self.save_dict(num_game)
             self.save_policy()
         self.states_to_update = []
 

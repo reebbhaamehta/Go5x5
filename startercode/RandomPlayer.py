@@ -15,6 +15,9 @@ class RandomPlayer:
     def set_side(self, side):
         self.side = side
 
+    def set_win_rates(self, wins):
+        pass
+
     def move(self, board):
         if board.game_over():
             return

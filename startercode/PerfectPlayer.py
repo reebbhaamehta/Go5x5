@@ -20,6 +20,9 @@ class PerfectPlayer:
     def set_side(self, side):
         self.side = side
 
+    def set_win_rates(self, wins):
+        pass
+
     def learn(self, board):
         pass
 

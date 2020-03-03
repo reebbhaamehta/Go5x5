@@ -13,10 +13,9 @@ import json
 
 GO_SIZE = 5
 WIN = 1.0
-LOSS = -1.0
-DRAW = 0.5  # TODO: change this to 0 maybe?
+LOSS = 0.0
+DRAW = 0.5
 INVALID_MOVE = -1.0
-REDUCE_E_BY = 0.977
 
 """
 Playing:

@@ -19,12 +19,12 @@ INVALID_MOVE = -1.0
 
 
 class QLearnerXO:
-    GAME_NUM = 100000  # ** 6
+    GAME_NUM = 10 ** 5  # ** 6
     REDUCE_E_BY = 0.977
     INCREASE_A_BY = 0.03
 
     # TODO: make alpha increase over time so that it makes more sense keep a max or min alpha so that
-    def __init__(self, piece_type=None, epsilon=1, alpha=0, gamma=0.9, agent_type="Learning",
+    def __init__(self, piece_type=None, epsilon=0, alpha=0.7, gamma=0.9, agent_type="Learning",
                  initial=numpy.random.rand(GO_SIZE, GO_SIZE), learn=True):
         self.gamma = gamma
         self.q_values = {}
@@ -35,11 +35,21 @@ class QLearnerXO:
         # self.learn = learn
         self.epsilon = epsilon
         self.alpha = alpha
-        self.min_epsilon = 0.05
+        self.min_epsilon = 0.1
         self.policy = {}
-        self.max_alpha = 0.95
+        self.max_alpha = 0.9
         self.policy_dump_time = 0
-        self.num_game = -1
+        self.num_game = 1
+        self.varyA_E = False
+        self.curr_win_rate = 0  # number of games won / number of games played
+        self.prev_win_rate = 0
+
+    def set_win_rates(self, wins):
+        self.prev_win_rate = self.curr_win_rate
+        if self.num_game != 0:
+            self.curr_win_rate = int(wins/self.num_game)
+        else:
+            self.curr_win_rate = 1
 
     def set_side(self, side):
         self.identity = side
@@ -109,11 +119,13 @@ class QLearnerXO:
                 qvalues[action] = -1.0
 
     def update_epsilon(self):
-        self.epsilon = max(self.epsilon * self.REDUCE_E_BY, self.min_epsilon)
+        if self.varyA_E:
+            self.epsilon = max(self.epsilon * self.REDUCE_E_BY, self.min_epsilon)
 
     def update_alpha(self):
         # self.alpha = min(self.max_alpha, self.alpha * self.INCREASE_A_BY)
-        self.alpha = 1 - self.epsilon
+        if self.varyA_E:
+            self.alpha = 1 - self.epsilon
 
     def move(self, go):
         if go.game_over():
@@ -144,9 +156,9 @@ class QLearnerXO:
                 self.q_values[state][move] = self.q_values[state][move] * (1 - self.alpha) \
                                              + self.alpha * self.gamma * max_q_value
             max_q_value = max(self.q_values[state].values())
-        # if self.num_game % int(self.GAME_NUM / 100) == 0:
-        #     self.update_epsilon()
-        #     self.update_alpha()
+        if self.num_game % int(self.GAME_NUM / 100) == 0:
+            self.update_epsilon()
+            self.update_alpha()
         if self.num_game % int(self.GAME_NUM / 10) == 0:
             self.save_dict()
             self.save_policy()

@@ -38,6 +38,8 @@ def battle(board, player1, player2, iter, learn=False, show_result=True):
         player1.num_game = i
         player2.num_game = i
         p1_stats[result] += 1
+        player1.set_win_rates((p1_stats[1]+p1_stats[0]))
+        player2.set_win_rates((p1_stats[2]+p1_stats[0]))
         board.reset()
 
     p1_stats = [round(x / iter * 100.0, 1) for x in p1_stats]
@@ -65,22 +67,28 @@ if __name__ == "__main__":
     qlearner = QLearner()
     qlearner = QLearnerXO()
     NUM = qlearner.GAME_NUM
+    # NUM = 10
 
     # train: play NUM games against players who only make random moves
     print('Training QLearner against RandomPlayer for {} times......'.format(NUM))
     board = Board()
+    qlearner.epsilon = 0
+    qlearner.alpha = 0.7
     battle(board, RandomPlayer(), qlearner, NUM, learn=True, show_result=False)
+    print(qlearner.epsilon, qlearner.alpha)
+    qlearner.epsilon = 0
+    qlearner.alpha = 0.7
     battle(board, qlearner, RandomPlayer(), NUM, learn=True, show_result=False)
 
-    print('Training QLearner against RandomPlayer for {} times......'.format(NUM))
-    battle(board, RandomPlayer(), qlearner, NUM, learn=True, show_result=False)
-    battle(board, qlearner, RandomPlayer(), NUM, learn=True, show_result=False)
+    # print('Training QLearner against RandomPlayer for {} times......'.format(NUM))
+    # battle(board, RandomPlayer(), qlearner, NUM, learn=True, show_result=False)
+    # battle(board, qlearner, RandomPlayer(), NUM, learn=True, show_result=False)
 
     # print('Training QLearner against QLearner2 for {} times......'.format(NUM))
     # battle(board, qlearner2, qlearner, NUM, learn=True, show_result=False)
     # battle(board, qlearner, qlearner2, NUM, learn=True, show_result=False)
     qlearner.epsilon = 0
-    qlearner.alpha = 0.7
+    qlearner.alpha = 1
     # test: play 1000 games against each opponent
     print('Playing QLearner against RandomPlayer for 1000 times......')
     q_rand = battle(board, qlearner, RandomPlayer(), 500)
