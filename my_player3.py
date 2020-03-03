@@ -61,6 +61,8 @@ class Q_learning_agent:
         self.varyA_E = False
         self.epsilon = 0
         self.alpha = 1
+        self.policy_dump_time = 1583230107
+        self.load_policy()
 
     def save_policy(self):
         for states in self.q_values:
@@ -116,12 +118,26 @@ class Q_learning_agent:
                         action = (i, j)
         return action
 
-    def get_input(self, go, piece_type):
+    def get_input_qvalue(self, go, piece_type):
         if self.identity != piece_type and go.score(piece_type) <= 0:
             self.identity = piece_type
         if go.game_end(piece_type):
             return
         action = self.max_qvalue(go, piece_type)
+        self.states_to_update.append((go.state_string(), action))
+        return action  # returns new state action pair or PASS
+
+    def get_input(self, go, piece_type):
+        if self.identity != piece_type and go.score(piece_type) <= 0:
+            self.identity = piece_type
+        if go.game_end(piece_type):
+            return
+        state = go.state_string()
+        if state in self.policy:
+            action = self.policy[state]
+        else:
+            action = random.random(list(self.policy))
+        # action = self.max_qvalue(go, piece_type)
         self.states_to_update.append((go.state_string(), action))
         return action  # returns new state action pair or PASS
 
@@ -175,9 +191,6 @@ if __name__ == "__main__":
     go_game.set_board(game_piece_type, previous_board, board)
     player = Q_learning_agent()
     player.fight()
-    player.load_dict(1000000)
-    player.save_policy()
-
     next_action = player.get_input(go_game, game_piece_type)
     writeOutput(next_action)
 

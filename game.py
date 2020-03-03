@@ -8,7 +8,7 @@ class Game:
 
     def __init__(self, size):
         self.n_move = 0
-        self.died_pieces = None
+        self.died_pieces = []
         self.verbose = None
         self.num_moves = 0
         self.max_move = size * size - 1  # The max movement of a Go game

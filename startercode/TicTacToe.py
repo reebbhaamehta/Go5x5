@@ -6,6 +6,7 @@ from QLearner import QLearner
 from PerfectPlayer import PerfectPlayer
 from SmartPlayer import SmartPlayer
 from QLearnerXO import QLearnerXO
+from Minimax import Minimax_agent
 
 sys.path.insert(1, str(Path.cwd()))
 
@@ -38,8 +39,6 @@ def battle(board, player1, player2, iter, learn=False, show_result=True):
         player1.num_game = i
         player2.num_game = i
         p1_stats[result] += 1
-        player1.set_win_rates((p1_stats[1]+p1_stats[0]))
-        player2.set_win_rates((p1_stats[2]+p1_stats[0]))
         board.reset()
 
     p1_stats = [round(x / iter * 100.0, 1) for x in p1_stats]
@@ -74,11 +73,13 @@ if __name__ == "__main__":
     board = Board()
     qlearner.epsilon = 0
     qlearner.alpha = 0.7
-    battle(board, RandomPlayer(), qlearner, NUM, learn=True, show_result=False)
-    print(qlearner.epsilon, qlearner.alpha)
-    qlearner.epsilon = 0
-    qlearner.alpha = 0.7
-    battle(board, qlearner, RandomPlayer(), NUM, learn=True, show_result=False)
+
+
+    # battle(board, RandomPlayer(), qlearner, NUM, learn=True, show_result=False)
+    # print(qlearner.epsilon, qlearner.alpha)
+    # qlearner.epsilon = 0
+    # qlearner.alpha = 0.7
+    # battle(board, qlearner, RandomPlayer(), NUM, learn=True, show_result=False)
 
     # print('Training QLearner against RandomPlayer for {} times......'.format(NUM))
     # battle(board, RandomPlayer(), qlearner, NUM, learn=True, show_result=False)
@@ -91,14 +92,14 @@ if __name__ == "__main__":
     qlearner.alpha = 1
     # test: play 1000 games against each opponent
     print('Playing QLearner against RandomPlayer for 1000 times......')
-    q_rand = battle(board, qlearner, RandomPlayer(), 500)
-    rand_q = battle(board, RandomPlayer(), qlearner, 500)
+    q_rand = battle(board, Minimax_agent(), RandomPlayer(), 500)
+    rand_q = battle(board, RandomPlayer(), Minimax_agent(), 500)
     print('Playing QLearner against SmartPlayer for 1000 times......')
-    q_smart = battle(board, qlearner, SmartPlayer(), 500)
-    smart_q = battle(board, SmartPlayer(), qlearner, 500)
+    q_smart = battle(board, Minimax_agent(), SmartPlayer(), 500)
+    smart_q = battle(board, SmartPlayer(), Minimax_agent(), 500)
     print('Playing QLearner against PerfectPlayer for 1000 times......')
-    q_perfect = battle(board, qlearner, PerfectPlayer(), 500)
-    perfect_q = battle(board, PerfectPlayer(), qlearner, 500)
+    q_perfect = battle(board, Minimax_agent(), PerfectPlayer(), 500)
+    perfect_q = battle(board, PerfectPlayer(), Minimax_agent(), 500)
 
     # print('Playing QLearner against Qlearner2 for 1000 times......')
     # q_q2 = battle(board, qlearner, qlearner, 500)

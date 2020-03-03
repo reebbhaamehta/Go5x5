@@ -93,10 +93,28 @@ def make_smarter(dict_number):
 def test():
     qlearner = Q_learning_agent()
     random_player = RandomPlayer()
-    qlearner.learn = False
-    qlearner.load_dict(500000)
-    battle(random_player, qlearner, int(TEST_GAMES), True)
-    battle(qlearner, random_player, int(TEST_GAMES), True)
+    qlearner.fight()
+    # player1: Player instance.always X
+    # player2: Player instance.always O
+    p1_stats = [0, 0, 0]
+    p2_stats = [0, 0, 0]
+
+    for i in range(int(TEST_GAMES)):
+        go = Game(GAME_SIZE)
+        go.verbose = True
+        go.new_board()
+        result = go.play(qlearner, random_player, True)
+        p1_stats[result] += 1
+    for i in range(int(TEST_GAMES)):
+        go = Game(GAME_SIZE)
+        go.verbose = True
+        go.new_board()
+        result = go.play(random_player, qlearner, True)
+        p2_stats[result] += 1
+    print(p1_stats, p2_stats)
+
+    # battle(random_player, qlearner, int(TEST_GAMES), True)
+    # battle(qlearner, random_player, int(TEST_GAMES), True)
 
 
 # arbitrarily
@@ -111,11 +129,11 @@ def track_intelligence(pl_num, stats, batch, file, epsilon):
 # TODO: make an evaluation function that calculates win rate as a
 #  metric to judge progress, this should happen while training and testing.
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=-1)
-    args = parser.parse_args()
-    make_smarter(args.num)
-    # test()
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=-1)
+    # args = parser.parse_args()
+    # make_smarter(args.num)
+    test()
 # TODO: check if update_qvalues is actually updating the correct
 #  values and not just a random variable before throwing it away.
 #  Checking briefly on Feb 27. I believe the q values are being
