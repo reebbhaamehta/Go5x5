@@ -17,6 +17,14 @@ class Game:
         self.board = numpy.zeros((self.size, self.size))
         self.previous_board = copy.deepcopy(self.board)
         self.X_move = True
+        self.next_board = copy.deepcopy(self.board)
+
+    def next_board(self, possible_move, piece_type):
+        board = self.board
+        if possible_move != "PASS":
+            board[possible_move[0]][possible_move[1]] = piece_type
+        self.next_board = board
+        return self.next_board
 
     def new_board(self):
         self.board = [[0 for x in range(self.size)] for y in range(self.size)]  # Empty space marked as 0
@@ -69,7 +77,7 @@ class Game:
 
         :param i: row number of the board.
         :param j: column number of the board.
-        :param piece_type: 1(white piece) or 2(black piece).
+        :param piece_type: 1(white piece)(X) or 2(black piece)(O).
         :param test_check: boolean if it's a test check.
         :return: boolean indicating whether the placement is valid.
         """
@@ -329,13 +337,6 @@ class Game:
         :return: piece type of winner of the game (0 if it's a tie).
         """
         self.new_board()
-        # Print input hints and error message if there is a manual player
-        if player1.type == 'manual' or player2.type == 'manual':
-            self.verbose = True
-            print('----------Input "exit" to exit the program----------')
-            print('X stands for black chess, O stands for white chess.')
-            self.visualize_board()
-
         verbose = self.verbose
         # Game starts!
         while 1:

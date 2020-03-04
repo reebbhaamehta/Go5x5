@@ -10,6 +10,7 @@ class RandomPlayer():
     def __init__(self):
         self.type = 'random'
         self.learn = False
+        self.identity = None
 
     def get_input(self, go, piece_type):
         '''

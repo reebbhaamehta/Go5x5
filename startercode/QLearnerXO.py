@@ -19,7 +19,7 @@ INVALID_MOVE = -1.0
 
 
 class QLearnerXO:
-    GAME_NUM = 10 ** 5  # ** 6
+    GAME_NUM = 10 ** 6  # ** 6
     REDUCE_E_BY = 0.977
     INCREASE_A_BY = 0.03
 
@@ -41,15 +41,6 @@ class QLearnerXO:
         self.policy_dump_time = 0
         self.num_game = 1
         self.varyA_E = False
-        self.curr_win_rate = 0  # number of games won / number of games played
-        self.prev_win_rate = 0
-
-    def set_win_rates(self, wins):
-        self.prev_win_rate = self.curr_win_rate
-        if self.num_game != 0:
-            self.curr_win_rate = int(wins/self.num_game)
-        else:
-            self.curr_win_rate = 1
 
     def set_side(self, side):
         self.identity = side
@@ -163,6 +154,7 @@ class QLearnerXO:
             self.save_dict()
             self.save_policy()
         self.states_to_update = []
+
 
 if __name__ == "__main__":
     qlearner = QLearnerXO()

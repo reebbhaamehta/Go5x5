@@ -38,7 +38,6 @@ class Q_learning_agent:
     REDUCE_E_BY = 0.977
     INCREASE_A_BY = 30
 
-
     def __init__(self, piece_type=None, epsilon=0.9, alpha=0.1, gamma=0.9, agent_type="Learning",
                  initial=numpy.random.rand(GO_SIZE, GO_SIZE), learn=True):
         self.gamma = gamma
@@ -118,25 +117,29 @@ class Q_learning_agent:
                         action = (i, j)
         return action
 
-    def get_input_qvalue(self, go, piece_type):
-        if self.identity != piece_type and go.score(piece_type) <= 0:
-            self.identity = piece_type
+    def get_input(self, go, piece_type):
+        # if self.identity != piece_type and go.score(piece_type) <= 0:
+        #     self.identity = piece_type
         if go.game_end(piece_type):
             return
         action = self.max_qvalue(go, piece_type)
         self.states_to_update.append((go.state_string(), action))
         return action  # returns new state action pair or PASS
 
-    def get_input(self, go, piece_type):
-        if self.identity != piece_type and go.score(piece_type) <= 0:
-            self.identity = piece_type
+    def get_input_policy(self, go, piece_type):
+        # if self.identity != piece_type and go.score(piece_type) <= 0:
+        #     self.identity = piece_type
         if go.game_end(piece_type):
             return
         state = go.state_string()
         if state in self.policy:
             action = self.policy[state]
         else:
-            action = random.random(list(self.policy))
+            while True:
+                action = random.choice(list(self.policy.values()))
+                if action != "PASS":
+                    if go.valid_place_check(action[0], action[1], piece_type, test_check=True):
+                        return action
         # action = self.max_qvalue(go, piece_type)
         self.states_to_update.append((go.state_string(), action))
         return action  # returns new state action pair or PASS
@@ -190,7 +193,7 @@ if __name__ == "__main__":
     go_game = Game(N)
     go_game.set_board(game_piece_type, previous_board, board)
     player = Q_learning_agent()
+    Q_learning_agent.identity = game_piece_type
     player.fight()
     next_action = player.get_input(go_game, game_piece_type)
     writeOutput(next_action)
-

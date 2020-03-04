@@ -15,7 +15,6 @@ O = 2
 TEST_GAMES = 100
 GAME_SIZE = 5
 
-
 """
 Learning:
 - play game of go through the host
@@ -41,10 +40,8 @@ def battle(player1, player2, total_games, show_result=False):
             print('number of iterations = {}'.format(i))
             print('time = {}'.format(time.time() - timer))
             timer = time.time()
-        #  Play game as player1
         p1_stats, p2_stats = play_learn_track(go, game_number, player1, player2, p1_stats, p2_stats, batch)
         game_number += 1
-        #  Play game as player2
         go = Game(GAME_SIZE)
         go.verbose = show_result
         go.new_board()
@@ -58,7 +55,6 @@ def play_learn_track(go, game_number, player1, player2, p1_stats, p2_stats, batc
     file = "TrackInt.txt"
     if player1.learn:
         player1.update_Qvalues(go, num_game=game_number)
-        # print("player1 epsilon = {}".format(player1.epsilon))
         p1_stats[result] += 1
         if game_number % batch == 0:
             epsilon = player1.epsilon
@@ -66,7 +62,6 @@ def play_learn_track(go, game_number, player1, player2, p1_stats, p2_stats, batc
             p1_stats = [0, 0, 0]
     elif player2.learn:
         player2.update_Qvalues(go, num_game=game_number)
-        # print("player2 epsilon = {}".format(player2.epsilon))
         if result == 1:
             result = 2
         elif result == 2:
@@ -126,21 +121,13 @@ def track_intelligence(pl_num, stats, batch, file, epsilon):
         f.write("\n")
 
 
-# TODO: make an evaluation function that calculates win rate as a
-#  metric to judge progress, this should happen while training and testing.
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=-1)
-    # args = parser.parse_args()
-    # make_smarter(args.num)
-    test()
-# TODO: check if update_qvalues is actually updating the correct
-#  values and not just a random variable before throwing it away.
-#  Checking briefly on Feb 27. I believe the q values are being
-#  updated correctly. Passing is now explicit March 1st.
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=-1)
+    args = parser.parse_args()
+    make_smarter(args.num)
+    # test()
 # TODO: implement my own functions and classes to account for
 #  reading current / previous state and writing output files,
 #  to check if the move I am about to make is valid and all
 #  the helper functions that are required to check those conditions.
-
