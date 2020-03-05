@@ -38,11 +38,10 @@ class Game:
         elif state_type == "Previous":
             return ''.join([str(self.previous_board[i][j]) for i in range(self.size) for j in range(self.size)])
 
-    def game_end(self, piece_type, action="MOVE"):
+    def game_end(self, action="MOVE"):
         """
         Check if the game should end.
 
-        :param piece_type: 1('X') or 2('O').
         :param action: "MOVE" or "PASS".
         :return: boolean indicating whether the game should end.
         """
@@ -64,12 +63,40 @@ class Game:
         """
 
         board = self.board
-        cnt = 0
+        count = 0
         for i in range(self.size):
             for j in range(self.size):
                 if board[i][j] == piece_type:
-                    cnt += 1
-        return cnt
+                    count += 1
+        return count
+
+    def score(self, piece_type):
+        """
+        Get score of a player by counting the number of stones.
+
+        :param piece_type: 1('X') or 2('O').
+        :return: boolean indicating whether the game should end.
+        """
+
+        board = self.board
+        count = 0
+        for i in range(self.size):
+            for j in range(self.size):
+                if board[i][j] == piece_type:
+                    count += 1
+        return count
+
+    def total_score(self, piece_type):
+        """
+        Get score of a player by counting the number of stones.
+
+        :param piece_type: 1('X') or 2('O').
+        :return: boolean indicating whether the game should end.
+        """
+        score = self.score(piece_type)
+        if piece_type == 2:
+            score += self.komi
+        return score
 
     def valid_place_check(self, i, j, piece_type, test_check=False):
         """
@@ -271,7 +298,7 @@ class Game:
         self.previous_board = previous_board
         self.board = board
 
-    def place_chess(self, i, j, piece_type):
+    def place_chess(self, i, j, piece_type, test_check):
         """
         Place a chess stone in the board.
 
@@ -282,7 +309,7 @@ class Game:
         """
         board = self.board
 
-        valid_place = self.valid_place_check(i, j, piece_type)
+        valid_place = self.valid_place_check(i, j, piece_type, test_check)
         if not valid_place:
             return False
         self.previous_board = copy.deepcopy(board)
@@ -363,17 +390,21 @@ class Game:
             else:
                 action = player2.get_input(self, piece_type)
 
+            # print(action)
             if verbose:
                 player = "X" if piece_type == 1 else "O"
 
             if action != "PASS":
                 # If invalid input, continue the loop. Else it places a chess on the board.
-                if not self.place_chess(action[0], action[1], piece_type):
-                    print('return FALSE')
+                if not self.place_chess(action[0], action[1], piece_type, True):
+
                     if piece_type == 1:
                         print("X turn: player1")
                     elif piece_type == 2:
                         print("O turn: player2")
+                        print(action)
+                        self.visualize_board()
+                        print(self.previous_board)
                     if verbose:
                         self.visualize_board()
                     # continue

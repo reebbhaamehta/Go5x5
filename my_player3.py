@@ -120,7 +120,7 @@ class Q_learning_agent:
     def get_input(self, go, piece_type):
         # if self.identity != piece_type and go.score(piece_type) <= 0:
         #     self.identity = piece_type
-        if go.game_end(piece_type):
+        if go.game_end():
             return
         action = self.max_qvalue(go, piece_type)
         self.states_to_update.append((go.state_string(), action))
@@ -129,7 +129,7 @@ class Q_learning_agent:
     def get_input_policy(self, go, piece_type):
         # if self.identity != piece_type and go.score(piece_type) <= 0:
         #     self.identity = piece_type
-        if go.game_end(piece_type):
+        if go.game_end():
             return
         state = go.state_string()
         if state in self.policy:

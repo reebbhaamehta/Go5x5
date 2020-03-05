@@ -9,11 +9,11 @@ from game import Game
 from read import readInput, readOutput
 from write import writeOutput, writeNextInput
 from random_player import RandomPlayer
-
+from Minimax import PerfectPlayer
 X = 1
 O = 2
-TEST_GAMES = 100
-GAME_SIZE = 5
+TEST_GAMES = 1
+GAME_SIZE = 3
 
 """
 Learning:
@@ -86,28 +86,39 @@ def make_smarter(dict_number):
 
 
 def test():
-    qlearner = Q_learning_agent()
+    # qlearner = Q_learning_agent()
     random_player = RandomPlayer()
-    qlearner.fight()
+    minimax = PerfectPlayer()
+    # qlearner.fight()
     # player1: Player instance.always X
     # player2: Player instance.always O
     p1_stats = [0, 0, 0]
     p2_stats = [0, 0, 0]
-
+    player1 = minimax
+    player2 = random_player
     for i in range(int(TEST_GAMES)):
         go = Game(GAME_SIZE)
-        go.verbose = True
+        go.verbose = False
         go.new_board()
-        result = go.play(qlearner, random_player, True)
+        result = go.play(player1, player2, False)
         p1_stats[result] += 1
     for i in range(int(TEST_GAMES)):
         go = Game(GAME_SIZE)
-        go.verbose = True
+        go.verbose = False
         go.new_board()
-        result = go.play(random_player, qlearner, True)
+        result = go.play(player2, player1, False)
         p2_stats[result] += 1
-    print(p1_stats, p2_stats)
 
+    print(p1_stats, p2_stats)
+    p1_stats = [round(x / TEST_GAMES * 100.0, 1) for x in p1_stats]
+    if True:
+        print('_' * 60)
+        print('{:>15}(X) | Wins:{}% Draws:{}% Losses:{}%'.format(player1.__class__.__name__, p1_stats[1], p1_stats[0],
+                                                                 p1_stats[2]).center(50))
+        print('{:>15}(O) | Wins:{}% Draws:{}% Losses:{}%'.format(player2.__class__.__name__, p1_stats[2], p1_stats[0],
+                                                                 p1_stats[1]).center(50))
+        print('_' * 60)
+        print()
     # battle(random_player, qlearner, int(TEST_GAMES), True)
     # battle(qlearner, random_player, int(TEST_GAMES), True)
 
@@ -125,8 +136,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=-1)
     args = parser.parse_args()
-    make_smarter(args.num)
-    # test()
+    # make_smarter(args.num)
+    test()
 # TODO: implement my own functions and classes to account for
 #  reading current / previous state and writing output files,
 #  to check if the move I am about to make is valid and all
