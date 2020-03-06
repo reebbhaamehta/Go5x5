@@ -9,11 +9,11 @@ from game import Game
 from read import readInput, readOutput
 from write import writeOutput, writeNextInput
 from random_player import RandomPlayer
-from Minimax import PerfectPlayer
+from Minimax import Minimax
 X = 1
 O = 2
 TEST_GAMES = 1
-GAME_SIZE = 3
+GAME_SIZE = 5
 
 """
 Learning:
@@ -88,7 +88,7 @@ def make_smarter(dict_number):
 def test():
     # qlearner = Q_learning_agent()
     random_player = RandomPlayer()
-    minimax = PerfectPlayer()
+    minimax = Minimax()
     # qlearner.fight()
     # player1: Player instance.always X
     # player2: Player instance.always O
@@ -117,6 +117,16 @@ def test():
                                                                  p1_stats[2]).center(50))
         print('{:>15}(O) | Wins:{}% Draws:{}% Losses:{}%'.format(player2.__class__.__name__, p1_stats[2], p1_stats[0],
                                                                  p1_stats[1]).center(50))
+        print('_' * 60)
+        print()
+    p2_stats = [round(x / TEST_GAMES * 100.0, 1) for x in p2_stats]
+
+    if True:
+        print('_' * 60)
+        print('{:>15}(X) | Wins:{}% Draws:{}% Losses:{}%'.format(player2.__class__.__name__, p2_stats[1], p2_stats[0],
+                                                                 p2_stats[2]).center(50))
+        print('{:>15}(O) | Wins:{}% Draws:{}% Losses:{}%'.format(player1.__class__.__name__, p2_stats[2], p2_stats[0],
+                                                                 p2_stats[1]).center(50))
         print('_' * 60)
         print()
     # battle(random_player, qlearner, int(TEST_GAMES), True)

@@ -70,22 +70,6 @@ class Game:
                     count += 1
         return count
 
-    def score(self, piece_type):
-        """
-        Get score of a player by counting the number of stones.
-
-        :param piece_type: 1('X') or 2('O').
-        :return: boolean indicating whether the game should end.
-        """
-
-        board = self.board
-        count = 0
-        for i in range(self.size):
-            for j in range(self.size):
-                if board[i][j] == piece_type:
-                    count += 1
-        return count
-
     def total_score(self, piece_type):
         """
         Get score of a player by counting the number of stones.
@@ -93,10 +77,18 @@ class Game:
         :param piece_type: 1('X') or 2('O').
         :return: boolean indicating whether the game should end.
         """
-        score = self.score(piece_type)
-        if piece_type == 2:
-            score += self.komi
-        return score
+        score1 = 0
+        score2 = 0
+        if piece_type == 1:
+            score1 = self.score(piece_type)
+            # score2 = self.score(2)
+            # total = score1 - score2
+        else:
+            score2 = self.score(piece_type) + self.komi
+            # score1 = self.score(1)
+            # total = (score1 - score2) * -1
+
+        return score1 + score2
 
     def valid_place_check(self, i, j, piece_type, test_check=False):
         """
