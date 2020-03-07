@@ -36,7 +36,7 @@ class Minimax:
             return
         else:
             # score, action = self._max(board)
-            action = self.alpha_beta_cutoff_search(board, 2)
+            action = self.alpha_beta_cutoff_search(board, 4)
             return action  # board.move(action[0], action[1], self.side)
 
     def alpha_beta_cutoff_search(self, board, depth=4):
@@ -94,7 +94,9 @@ class Minimax:
             else:
                 for i, j in candidates:
                     copyBoard = copy.deepcopy(board)
-                    copyBoard.place_chess(i, j, self.opponent, True)
+                    valid = copyBoard.place_chess(i, j, self.opponent, True)
+                    if not valid:
+                        raise ValueError("in min invalid move")
                     v = min(v, max_value(copyBoard, alpha, beta, depth - 1))
                     print("-"*60)
                     print("Min candidates = {}".format((i, j, v)))

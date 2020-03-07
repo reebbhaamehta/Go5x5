@@ -42,11 +42,11 @@ def battle(player1, player2, total_games, show_result=False):
             timer = time.time()
         p1_stats, p2_stats = play_learn_track(go, game_number, player1, player2, p1_stats, p2_stats, batch)
         game_number += 1
-        go = Game(GAME_SIZE)
-        go.verbose = show_result
-        go.new_board()
-        p1_stats, p2_stats = play_learn_track(go, game_number, player2, player1, p1_stats, p2_stats, batch)
-        game_number += 1
+        # go = Game(GAME_SIZE)
+        # go.verbose = show_result
+        # go.new_board()
+        # p1_stats, p2_stats = play_learn_track(go, game_number, player2, player1, p1_stats, p2_stats, batch)
+        # game_number += 1
     return
 
 
@@ -146,8 +146,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=-1)
     args = parser.parse_args()
-    # make_smarter(args.num)
-    test()
+    make_smarter(args.num)
+    # test()
 # TODO: implement my own functions and classes to account for
 #  reading current / previous state and writing output files,
 #  to check if the move I am about to make is valid and all

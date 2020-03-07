@@ -14,7 +14,7 @@ class Game:
         self.max_move = size * size - 1  # The max movement of a Go game
         self.komi = size / 2  # Komi rule
         self.size = size
-        self.board = numpy.zeros((self.size, self.size))
+        self.board = numpy.array(numpy.zeros((self.size, self.size)))
         self.previous_board = copy.deepcopy(self.board)
         self.X_move = True
         self.next_board = copy.deepcopy(self.board)
@@ -27,16 +27,19 @@ class Game:
         return self.next_board
 
     def new_board(self):
-        self.board = [[0 for x in range(self.size)] for y in range(self.size)]  # Empty space marked as 0
+        self.board = numpy.array([[0 for x in range(self.size)] for y in range(self.size)])  # Empty space marked as 0
         self.previous_board = copy.deepcopy(self.board)
 
     def state_string(self, state_type="Current"):
         """ Encode the current state of the board as a string
         """
         if state_type == "Current":
-            return ''.join([str(self.board[i][j]) for i in range(self.size) for j in range(self.size)])
+            state_string = str(self.board.ravel())[1:-1].strip()
+            # return ''.join([str(self.board[i][j]) for i in range(self.size) for j in range(self.size)])
         elif state_type == "Previous":
-            return ''.join([str(self.previous_board[i][j]) for i in range(self.size) for j in range(self.size)])
+            state_string = str(self.previous_board.ravel())[1:-1].strip()
+        return state_string
+        # return ''.join([str(self.previous_board[i][j]) for i in range(self.size) for j in range(self.size)])
 
     def game_end(self, action="MOVE"):
         """
@@ -391,7 +394,13 @@ class Game:
                 if not self.place_chess(action[0], action[1], piece_type, True):
 
                     if piece_type == 1:
+                        print("-"*60)
                         print("X turn: player1")
+                        print(self.previous_board)
+                        print(action)
+                        print(self.board)
+                        print("-"*60)
+                        exit()
                     elif piece_type == 2:
                         print("O turn: player2")
                         print(action)

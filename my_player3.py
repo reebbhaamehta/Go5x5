@@ -33,6 +33,53 @@ Learning:
 """
 
 
+def string_to_state(state_string):
+    state = numpy.fromstring(state_string, dtype=int, sep=" ")
+    state = numpy.reshape(state, (5, 5))
+    return state
+
+
+def state_to_string(state):
+    state_string = str(state.ravel())[1:-1].strip()
+    return state_string
+
+
+def orient_action(action, orientation):
+    # rotate left
+    for i in range(orientation[0]):
+        action = (GO_SIZE - 1 - action[1], action[0])
+    # flip with x axis static
+    if orientation[1] == 0:
+        action = (GO_SIZE - 1 - action[0], action[1])
+    return action
+
+
+def orient_action_to_base(action, orientation):
+    # rotate right
+    for i in range(orientation[0]):
+        action = (action[1], GO_SIZE - 1 - action[0])
+    # flip with x axis static
+    if orientation[1] == 0:
+        action = (GO_SIZE - 1 - action[0], action[1])
+    return action
+
+
+def symmetrical_states(current_board):
+    # print(type(current_board))
+    # exit()
+    # state_list = [(equivalent_board, (rotation(counterclockwise) = 0, 1, 2, 3,
+    #               axis to flip = -1 -> no flips, 0->x axis static, 1->y axis static))]
+    state_list = [(current_board, (0, -1))]  # original board
+    for i in range(0, 3):
+        state_list.append((numpy.rot90(state_list[i][0]), (i+1, -1)))
+    for i in range(4):
+        rotations = state_list[i][1][0]
+        orientation = (rotations, 1)
+        state_list.append((numpy.flip(state_list[i][0], 0), orientation))
+    # state = game.state_string()
+    return state_list
+
+
 class Q_learning_agent:
     LEARN_GAMES = 10 ** 6
     REDUCE_E_BY = 0.977
@@ -54,6 +101,7 @@ class Q_learning_agent:
         self.max_alpha = 0.95
         self.policy_dump_time = 0
         self.varyA_E = True
+        self.state_q = {}
 
     def fight(self):
         self.learn = False
@@ -64,11 +112,11 @@ class Q_learning_agent:
         self.load_policy()
 
     def save_policy(self):
-        for states in self.q_values:
+        for states in self.state_q:
             max_q = -math.inf
-            for action in self.q_values[states]:
-                if self.q_values[states][action] > max_q:
-                    max_q = self.q_values[states][action]
+            for action in self.state_q[states]:
+                if self.state_q[states][action] > max_q:
+                    max_q = self.state_q[states][action]
                     self.policy[states] = action
         self.policy_dump_time = int(time.time())
         # print(self.policy)
@@ -78,35 +126,68 @@ class Q_learning_agent:
         self.policy = pickle.load(open("policy_learned_{}.pkl".format(self.policy_dump_time), "rb"))
 
     def load_dict(self, num_games):
-        self.q_values = pickle.load(open("qvalues_{}.pkl".format(num_games), "rb"))
+        if self.identity == 1:
+            self.state_q = pickle.load(open("qvalues_X_{}.pkl".format(num_games), "rb"))
+        else:
+            self.state_q = pickle.load(open("qvalues_O_{}.pkl".format(num_games), "rb"))
 
     def save_dict(self, num_games):
-        pickle.dump(self.q_values, open("qvalues_{}.pkl".format(num_games), "wb"))
+        if self.identity == 1:
+            pickle.dump(self.state_q, open("qvalues_X_{}.pkl".format(num_games), "wb"))
+        else:
+            pickle.dump(self.state_q, open("qvalues_O_{}.pkl".format(num_games), "wb"))
 
-    def add_state(self, state):
-        if state not in self.q_values:
-            action_q = {}
+    # def add_state(self, state):
+    #     if state not in self.q_values:
+    #         action_q = {}
+    #         for i in range(GO_SIZE):
+    #             for j in range(GO_SIZE):
+    #                 poss_action = (i, j)
+    #                 action_q[poss_action] = random.random()
+    #         action_q["PASS"] = random.random()
+    #         self.q_values[state] = action_q
+    #     return self.q_values[state]
+
+    def state_q_values(self, state):
+        state_np = string_to_state(state)
+        symmetries = symmetrical_states(state_np)
+        initial_state = state_to_string(symmetries[0][0])
+        symm_index = [state_to_string(s[0]) in self.state_q for s in symmetries]
+        if not any(symm_index):
+            # actions_q_values = {}
+            self.state_q[initial_state] = {}
             for i in range(GO_SIZE):
                 for j in range(GO_SIZE):
-                    poss_action = (i, j)
-                    action_q[poss_action] = random.random()
-            action_q["PASS"] = random.random()
-            self.q_values[state] = action_q
-        return self.q_values[state]
+                    possible_action = (i, j)
+                    self.state_q[initial_state][possible_action] = random.random()
+            self.state_q[initial_state]["PASS"] = random.random()
+            # self.state_q[initial_state] = actions_q_values
+            orientation = (0, -1)
+            return self.state_q[initial_state], orientation, initial_state
+        else:
+            orientation = symmetries[symm_index.index(True)][1]
+            base_state = state_to_string(symmetries[symm_index.index(True)][0])
+            return self.state_q[base_state], orientation, base_state
 
     def max_qvalue(self, go, piece_type):
-        state = go.state_string()
-        action_q_vals = self.add_state(state)
+        # state_base_orientation, orientation = symmetrical_states(go.board)
+        # print(states_orientation)
+        state = state_to_string(go.board)
+        action_q_vals, orientation, base_state = self.state_q_values(state)
         curr_max = -math.inf
         valid_places = []
         for actions in action_q_vals:
             if actions != "PASS":
-                if go.valid_place_check(actions[0], actions[1], piece_type, test_check=True):
-                    valid_places.append(actions)
-                else:
-                    action_q_vals[actions] = INVALID_MOVE
+                actual_orientation_action = orient_action(actions, orientation)
+                if go.valid_place_check(actual_orientation_action[0], actual_orientation_action[1], piece_type, test_check=True):
+                    action_in_base = orient_action_to_base(actual_orientation_action, orientation)
+                    valid_places.append(action_in_base)
+                # else:
+                #     action_q_vals[actions] = INVALID_MOVE
+        # print(valid_places)
         if not valid_places:
             action = "PASS"
+            action_base = "PASS"
         else:
             if random.random() < self.epsilon:
                 action = random.choice(valid_places)
@@ -114,16 +195,18 @@ class Q_learning_agent:
                 for i, j in valid_places:
                     if action_q_vals[(i, j)] > curr_max:
                         curr_max = action_q_vals[(i, j)]
-                        action = (i, j)
+                        action_base = (i, j)
+                action = orient_action(action_base, orientation)
+        self.states_to_update.append((base_state, action_base))
         return action
 
     def get_input(self, go, piece_type):
-        # if self.identity != piece_type and go.score(piece_type) <= 0:
-        #     self.identity = piece_type
+        if self.identity != piece_type and go.score(piece_type) <= 0:
+            self.identity = piece_type
         if go.game_end():
             return
         action = self.max_qvalue(go, piece_type)
-        self.states_to_update.append((go.state_string(), action))
+        # self.states_to_update.append((go.state_string(), action))
         return action  # returns new state action pair or PASS
 
     def get_input_policy(self, go, piece_type):
@@ -167,17 +250,20 @@ class Q_learning_agent:
         first_iteration = True
         self.states_to_update.reverse()
         for state, move in self.states_to_update:
-            self.q_values[state] = self.add_state(state)
+            base_state_action_q, orientation, base_state = self.state_q_values(state)
             # TODO: what if you are propagating a loss?? Will you enter this also when not the reward?
             # Try using first_iteration instead as condition to enter this first if.
-            # if first_iteration:
-            if max_q_value < 0:
-                self.q_values[state][move] = reward
+            # if max_q_value < 0:
+            #     self.q_values[state][move] = reward
+            if first_iteration:
+                base_state_action_q[move] = reward
                 first_iteration = False
             else:
-                self.q_values[state][move] = self.q_values[state][move] * (1 - self.alpha) \
-                                             + self.alpha * self.gamma * max_q_value
-            max_q_value = max(self.q_values[state].values())
+                # self.q_values[state][move] = self.q_values[state][move] * (1 - self.alpha) \
+                                             # + self.alpha * self.gamma * max_q_value
+                base_state_action_q[move] = base_state_action_q[move] * (1 - self.alpha) \
+                                            + self.alpha * self.gamma * max_q_value
+            max_q_value = max(base_state_action_q.values())
         if num_game % int(self.LEARN_GAMES / 100) == 0:
             self.update_epsilon()
             self.update_alpha()
