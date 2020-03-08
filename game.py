@@ -82,16 +82,41 @@ class Game:
         """
         score1 = 0
         score2 = 0
-        if piece_type == 1:
-            score1 = self.score(piece_type)
-            # score2 = self.score(2)
-            # total = score1 - score2
-        else:
-            score2 = self.score(piece_type) + self.komi
-            # score1 = self.score(1)
-            # total = (score1 - score2) * -1
+        board = self.board
+        count = 0
 
-        return score1 + score2
+        for i in range(self.size):
+            for j in range(self.size):
+                if board[i][j] == piece_type:
+                    count += 1
+                    ally_members = self.ally_dfs(i, j)
+                    for member in ally_members:
+                        neighbors = self.detect_neighbor(member[0], member[1])
+                        for piece in neighbors:
+                        # If there is empty space around a piece, it has liberty
+                            if board[piece[0]][piece[1]] == 0:
+                                count += 1
+
+        return count
+
+    def find_liberty(self, i, j):
+        """
+        Find liberty of a given stone. If a group of allied stones has no liberty, they all die.
+
+        :param i: row number of the board.
+        :param j: column number of the board.
+        :return: boolean indicating whether the given stone still has liberty.
+        """
+        board = self.board
+        ally_members = self.ally_dfs(i, j)
+        for member in ally_members:
+            neighbors = self.detect_neighbor(member[0], member[1])
+            for piece in neighbors:
+                # If there is empty space around a piece, it has liberty
+                if board[piece[0]][piece[1]] == 0:
+                    return True
+        # If none of the pieces in a allied group has an empty space, it has no liberty
+        return False
 
     def valid_place_check(self, i, j, piece_type, test_check=False):
         """
@@ -253,25 +278,6 @@ class Game:
                 if ally not in stack and ally not in ally_members:
                     stack.append(ally)
         return ally_members
-
-    def find_liberty(self, i, j):
-        """
-        Find liberty of a given stone. If a group of allied stones has no liberty, they all die.
-
-        :param i: row number of the board.
-        :param j: column number of the board.
-        :return: boolean indicating whether the given stone still has liberty.
-        """
-        board = self.board
-        ally_members = self.ally_dfs(i, j)
-        for member in ally_members:
-            neighbors = self.detect_neighbor(member[0], member[1])
-            for piece in neighbors:
-                # If there is empty space around a piece, it has liberty
-                if board[piece[0]][piece[1]] == 0:
-                    return True
-        # If none of the pieces in a allied group has an empty space, it has no liberty
-        return False
 
     def set_board(self, piece_type, previous_board, board):
         """

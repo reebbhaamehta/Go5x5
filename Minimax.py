@@ -36,12 +36,15 @@ class Minimax:
             return
         else:
             # score, action = self._max(board)
-            action = self.alpha_beta_cutoff_search(board, 4)
+            action = self.alpha_beta_cutoff_search(board, 3)
             return action  # board.move(action[0], action[1], self.side)
 
     def alpha_beta_cutoff_search(self, board, depth=4):
 
         def max_value(board, alpha, beta, depth):
+            state = board.state_string()
+            # if state in self.cache_max:
+            #     return self.cache_max[state][0]
             if depth == 0 or board.game_end():
                 # board.visualize_board()
                 # print(depth)
@@ -64,6 +67,7 @@ class Minimax:
                     copyBoard = copy.deepcopy(board)
                     copyBoard.place_chess(i, j, self.side, True)
                     v = max(v, min_value(copyBoard, alpha, beta, depth - 1))
+                    self.cache_max[state] = (v, (i, j))
                     print("-"*60)
                     print("Max candidates = {}".format((i, j, v)))
                     board.visualize_board()
@@ -75,6 +79,9 @@ class Minimax:
             return v
 
         def min_value(board, alpha, beta, depth):
+            state = board.state_string()
+            # if state in self.cache_min:
+            #     return self.cache_min[state][0]
             if depth == 0 or board.game_end():
                 # board.visualize_board()
                 return board.total_score(self.side)
@@ -98,6 +105,7 @@ class Minimax:
                     if not valid:
                         raise ValueError("in min invalid move")
                     v = min(v, max_value(copyBoard, alpha, beta, depth - 1))
+                    self.cache_min[state] = (v, (i, j))
                     print("-"*60)
                     print("Min candidates = {}".format((i, j, v)))
                     board.visualize_board()
@@ -130,64 +138,6 @@ class Minimax:
                     best_action = (i, j)
                     # print(best_action, best_score)
         return best_action
-
-    # def _min(self, board: Game):
-    #     state = board.state_string()
-    #     if state in self.cache_min:
-    #         return self.cache_min[state]
-    #     elif board.game_end() and board.judge_winner() == 0:
-    #         return board.total_score(self.side), None
-    #     elif board.game_end() and board.judge_winner() == self.side:
-    #         return board.total_score(self.side), None
-    #     elif board.game_end() and board.judge_winner() == self.opponent:
-    #         return board.total_score(self.side), None
-    #     else:
-    #         min_value, action = board.score(self.side), None
-    #         candidates = []
-    #         for i in range(board.size):
-    #             for j in range(board.size):
-    #                 if board.valid_place_check(i, j, self.opponent, test_check=True):
-    #                     candidates.append((i, j))
-    #                 # candidates.append("PASS")
-    #         # candidates = [(i, j) for i in range(3) if board.state[i][j] == 0 for j in iter(range(3))]
-    #         for i, j in candidates:
-    #             copyBoard = copy.deepcopy(board)
-    #             copyBoard.place_chess(i, j, self.opponent, True)
-    #             score, a = self._max(copyBoard)
-    #             if score < min_value or action is None:
-    #                 min_value, action = score, (i, j)
-    #             self.cache_min[state] = (min_value, action)
-    #         # print("MIN NODE = {}".format(min_value), "state = {}".format(state))
-    #         return min_value, action
-    #
-    # def _max(self, board):
-    #     state = board.state_string()
-    #     if state in self.cache_max:
-    #         return self.cache_max[state]
-    #     elif board.game_end() and board.judge_winner() == 0:
-    #         return board.total_score(self.side), None
-    #     elif board.game_end() and board.judge_winner() == self.side:
-    #         return board.total_score(self.side), None
-    #     elif board.game_end() and board.judge_winner() == self.opponent:
-    #         return board.total_score(self.side), None
-    #     else:
-    #         max_value, action = board.score(self.side), None
-    #         candidates = []
-    #         for i in range(board.size):
-    #             for j in range(board.size):
-    #                 if board.valid_place_check(i, j, self.side, test_check=True):
-    #                     candidates.append((i, j))
-    #                 # candidates.append("PASS")
-    #         # candidates = [(i, j) for i in range(3) if board.state[i][j] == 0 for j in iter(range(3))]
-    #         for i, j in candidates:
-    #             b = copy.deepcopy(board)
-    #             b.place_chess(i, j, self.side, True)
-    #             score, a = self._min(b)
-    #             if score > max_value or action is None:
-    #                 max_value, action = score, (i, j)
-    #             self.cache_max[state] = (max_value, action)
-    #         # print("MAX NODE = {}".format(max_value), "state = {}".format(state))
-    #         return max_value, action
 
 
 if __name__ == "__main__":
