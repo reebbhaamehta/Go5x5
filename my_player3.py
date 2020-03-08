@@ -7,7 +7,7 @@ import random
 
 from read import readInput
 from write import writeOutput
-from game import Game
+from mygame import Game
 import numpy
 import json
 
@@ -97,11 +97,13 @@ class Q_learning_agent:
         self.epsilon = epsilon
         self.alpha = alpha
         self.min_epsilon = 0.05
-        self.policy = {}
+        self.policy_X = {}
+        self.policy_O = {}
         self.max_alpha = 0.95
-        self.policy_dump_time = 0
         self.varyA_E = True
-        self.state_q = {}
+        self.state_q_O = {}
+        self.state_q_X = {}
+        self.file_count = 0
 
     def fight(self):
         self.learn = False
@@ -111,69 +113,88 @@ class Q_learning_agent:
         self.policy_dump_time = 1583230107
         self.load_policy()
 
-    def save_policy(self):
-        for states in self.state_q:
+    def save_policy(self, num_games):
+        for states in self.state_q_X:
             max_q = -math.inf
-            for action in self.state_q[states]:
-                if self.state_q[states][action] > max_q:
-                    max_q = self.state_q[states][action]
-                    self.policy[states] = action
-        self.policy_dump_time = int(time.time())
-        # print(self.policy)
-        pickle.dump(self.policy, open("policy_learned_{}.pkl".format(self.policy_dump_time), "wb"))
+            for action in self.state_q_X[states]:
+                if self.state_q_X[states][action] > max_q:
+                    max_q = self.state_q_X[states][action]
+                    self.policy_X[states] = action
+        for states in self.state_q_O:
+            max_q = -math.inf
+            for action in self.state_q_O[states]:
+                if self.state_q_O[states][action] > max_q:
+                    max_q = self.state_q_O[states][action]
+                    self.policy_O[states] = action
+        pickle.dump(self.policy_X, open("policy_learned_X_{}.pkl".format(num_games), "wb"))
+        pickle.dump(self.policy_O, open("policy_learned_O_{}.pkl".format(num_games), "wb"))
 
-    def load_policy(self):
-        self.policy = pickle.load(open("policy_learned_{}.pkl".format(self.policy_dump_time), "rb"))
+
+    def load_policy(self, num_games):
+        self.policy = pickle.load(open("policy_learned_{}.pkl".format(num_games), "rb"))
 
     def load_dict(self, num_games):
-        if self.identity == 1:
-            self.state_q = pickle.load(open("qvalues_X_{}.pkl".format(num_games), "rb"))
-        else:
-            self.state_q = pickle.load(open("qvalues_O_{}.pkl".format(num_games), "rb"))
+        # if self.identity == 1:
+        self.state_q_X = pickle.load(open("qvalues_X_{}.pkl".format(num_games), "rb"))
+        # else:
+        self.state_q_O = pickle.load(open("qvalues_O_{}.pkl".format(num_games), "rb"))
 
     def save_dict(self, num_games):
-        if self.identity == 1:
-            pickle.dump(self.state_q, open("qvalues_X_{}.pkl".format(num_games), "wb"))
-        else:
-            pickle.dump(self.state_q, open("qvalues_O_{}.pkl".format(num_games), "wb"))
+        # if self.identity == 1:
+        pickle.dump(self.state_q_X, open("qvalues_X_{}.pkl".format(num_games), "wb"))
+        # else:
+        pickle.dump(self.state_q_O, open("qvalues_O_{}.pkl".format(num_games), "wb"))
 
-    # def add_state(self, state):
-    #     if state not in self.q_values:
-    #         action_q = {}
-    #         for i in range(GO_SIZE):
-    #             for j in range(GO_SIZE):
-    #                 poss_action = (i, j)
-    #                 action_q[poss_action] = random.random()
-    #         action_q["PASS"] = random.random()
-    #         self.q_values[state] = action_q
-    #     return self.q_values[state]
-
-    def state_q_values(self, state):
+    def state_q_values_O(self, state):
         state_np = string_to_state(state)
         symmetries = symmetrical_states(state_np)
         initial_state = state_to_string(symmetries[0][0])
-        symm_index = [state_to_string(s[0]) in self.state_q for s in symmetries]
+        symm_index = [state_to_string(s[0]) in self.state_q_O for s in symmetries]
         if not any(symm_index):
             # actions_q_values = {}
-            self.state_q[initial_state] = {}
+            self.state_q_O[initial_state] = {}
             for i in range(GO_SIZE):
                 for j in range(GO_SIZE):
                     possible_action = (i, j)
-                    self.state_q[initial_state][possible_action] = random.random()
-            self.state_q[initial_state]["PASS"] = random.random()
+                    self.state_q_O[initial_state][possible_action] = random.random()
+            self.state_q_O[initial_state]["PASS"] = random.random()
             # self.state_q[initial_state] = actions_q_values
             orientation = (0, -1)
-            return self.state_q[initial_state], orientation, initial_state
+            return self.state_q_O[initial_state], orientation, initial_state
         else:
             orientation = symmetries[symm_index.index(True)][1]
             base_state = state_to_string(symmetries[symm_index.index(True)][0])
-            return self.state_q[base_state], orientation, base_state
+            return self.state_q_O[base_state], orientation, base_state
+
+    def state_q_values_X(self, state):
+        state_np = string_to_state(state)
+        symmetries = symmetrical_states(state_np)
+        initial_state = state_to_string(symmetries[0][0])
+        symm_index = [state_to_string(s[0]) in self.state_q_X for s in symmetries]
+        if not any(symm_index):
+            # actions_q_values = {}
+            self.state_q_X[initial_state] = {}
+            for i in range(GO_SIZE):
+                for j in range(GO_SIZE):
+                    possible_action = (i, j)
+                    self.state_q_X[initial_state][possible_action] = random.random()
+            self.state_q_X[initial_state]["PASS"] = random.random()
+            # self.state_q[initial_state] = actions_q_values
+            orientation = (0, -1)
+            return self.state_q_X[initial_state], orientation, initial_state
+        else:
+            orientation = symmetries[symm_index.index(True)][1]
+            base_state = state_to_string(symmetries[symm_index.index(True)][0])
+            return self.state_q_X[base_state], orientation, base_state
 
     def max_qvalue(self, go, piece_type):
         # state_base_orientation, orientation = symmetrical_states(go.board)
         # print(states_orientation)
         state = state_to_string(go.board)
-        action_q_vals, orientation, base_state = self.state_q_values(state)
+        if self.identity == 1:
+            action_q_vals, orientation, base_state = self.state_q_values_X(state)
+        else:
+            action_q_vals, orientation, base_state = self.state_q_values_O(state)
         curr_max = -math.inf
         valid_places = []
         for actions in action_q_vals:
@@ -190,13 +211,13 @@ class Q_learning_agent:
             action_base = "PASS"
         else:
             if random.random() < self.epsilon:
-                action = random.choice(valid_places)
+                action_base = random.choice(valid_places)
             else:
                 for i, j in valid_places:
                     if action_q_vals[(i, j)] > curr_max:
                         curr_max = action_q_vals[(i, j)]
                         action_base = (i, j)
-                action = orient_action(action_base, orientation)
+            action = orient_action(action_base, orientation)
         self.states_to_update.append((base_state, action_base))
         return action
 
@@ -250,7 +271,10 @@ class Q_learning_agent:
         first_iteration = True
         self.states_to_update.reverse()
         for state, move in self.states_to_update:
-            base_state_action_q, orientation, base_state = self.state_q_values(state)
+            if self.identity == 1:
+                base_state_action_q, orientation, base_state = self.state_q_values_X(state)
+            else:
+                base_state_action_q, orientation, base_state = self.state_q_values_O(state)
             # TODO: what if you are propagating a loss?? Will you enter this also when not the reward?
             # Try using first_iteration instead as condition to enter this first if.
             # if max_q_value < 0:
@@ -268,8 +292,11 @@ class Q_learning_agent:
             self.update_epsilon()
             self.update_alpha()
         if num_game % int(self.LEARN_GAMES / 100) == 0:
+            if self.file_count == 10:
+                num_game = 0
             self.save_dict(num_game)
-            self.save_policy()
+            self.save_policy(num_game)
+            self.file_count += 1
         self.states_to_update = []
 
 

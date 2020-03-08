@@ -18,6 +18,10 @@ class Game:
         self.previous_board = copy.deepcopy(self.board)
         self.X_move = True
         self.next_board = copy.deepcopy(self.board)
+        self.prev_opponent_score = 0
+        self.opponent_score = 0
+
+
 
     def next_board(self, possible_move, piece_type):
         board = self.board
@@ -84,9 +88,16 @@ class Game:
         score2 = 0
         board = self.board
         count = 0
-
+        if piece_type == 1:
+            opponent = 2
+        else:
+            opponent = 1
         for i in range(self.size):
             for j in range(self.size):
+                if board[2][2] == piece_type:
+                    count = count + 2
+                if board[i][4] == piece_type or board[0][j] == piece_type:
+                    count = count - 2
                 if board[i][j] == piece_type:
                     count += 1
                     ally_members = self.ally_dfs(i, j)
@@ -96,7 +107,16 @@ class Game:
                         # If there is empty space around a piece, it has liberty
                             if board[piece[0]][piece[1]] == 0:
                                 count += 1
-
+                            if board[piece[0]][piece[1]] == opponent:
+                                count += 2
+        self.prev_opponent_score = self.opponent_score
+        if piece_type == 1:
+            count = count - self.komi
+            self.opponent_score = self.score(2)
+        else:
+            self.opponent_score = self.score(1)
+        if self.opponent_score < self.prev_opponent_score:
+            count = count + 2
         return count
 
     def find_liberty(self, i, j):
@@ -315,7 +335,7 @@ class Game:
             return False
         self.previous_board = copy.deepcopy(board)
         board[i][j] = piece_type
-        self.board = board
+        self.board = numpy.array(board)
         return True
 
     def judge_winner(self):

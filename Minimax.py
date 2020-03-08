@@ -2,10 +2,11 @@ import copy
 
 # from Board import Board
 import math
+import random
 
 import numpy as np
 
-from game import Game
+from mygame import Game
 
 WIN_REWARD = 1.0
 DRAW_REWARD = 0.0
@@ -56,6 +57,7 @@ class Minimax:
                     if board.valid_place_check(i, j, self.side, test_check=True):
                         candidates.append((i, j))
             # print("Max candidates = {}".format(candidates))
+            random.shuffle(candidates)
             if not candidates:
                 action = "PASS"
                 v = max(v, min_value(board, alpha, beta, depth - 1))
@@ -68,11 +70,11 @@ class Minimax:
                     copyBoard.place_chess(i, j, self.side, True)
                     v = max(v, min_value(copyBoard, alpha, beta, depth - 1))
                     self.cache_max[state] = (v, (i, j))
-                    print("-"*60)
-                    print("Max candidates = {}".format((i, j, v)))
-                    board.visualize_board()
-                    copyBoard.visualize_board()
-                    print("-"*60)
+                    # print("-"*60)
+                    # print("Max candidates = {}".format((i, j, v)))
+                    # board.visualize_board()
+                    # copyBoard.visualize_board()
+                    # print("-"*60)
                     if v >= beta:
                         return v
                     alpha = max(alpha, v)
@@ -91,7 +93,7 @@ class Minimax:
                 for j in range(board.size):
                     if board.valid_place_check(i, j, self.opponent, test_check=True):
                         candidates.append((i, j))
-
+            random.shuffle(candidates)
             if not candidates:
                 action = "PASS"
                 v = min(v, max_value(board, alpha, beta, depth - 1))
@@ -106,11 +108,11 @@ class Minimax:
                         raise ValueError("in min invalid move")
                     v = min(v, max_value(copyBoard, alpha, beta, depth - 1))
                     self.cache_min[state] = (v, (i, j))
-                    print("-"*60)
-                    print("Min candidates = {}".format((i, j, v)))
-                    board.visualize_board()
-                    copyBoard.visualize_board()
-                    print("-"*60)
+                    # print("-"*60)
+                    # print("Min candidates = {}".format((i, j, v)))
+                    # board.visualize_board()
+                    # copyBoard.visualize_board()
+                    # print("-"*60)
                     if v <= alpha:
                         return v
                     beta = min(beta, v)
@@ -125,7 +127,7 @@ class Minimax:
                 if board.valid_place_check(i, j, self.side, test_check=True):
                     candidates.append((i, j))
         # print("ABP candidates = {}".format(candidates))
-
+        random.shuffle(candidates)
         if not candidates:
             best_action = "PASS"
         else:
