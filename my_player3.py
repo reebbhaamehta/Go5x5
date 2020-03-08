@@ -129,9 +129,10 @@ class Q_learning_agent:
         pickle.dump(self.policy_X, open("policy_learned_X_{}.pkl".format(num_games), "wb"))
         pickle.dump(self.policy_O, open("policy_learned_O_{}.pkl".format(num_games), "wb"))
 
-
     def load_policy(self, num_games):
-        self.policy = pickle.load(open("policy_learned_{}.pkl".format(num_games), "rb"))
+        self.policy_X = pickle.load(open("policy_learned_X_{}.pkl".format(num_games), "rb"))
+        self.policy_O = pickle.load(open("policy_learned_O_{}.pkl".format(num_games), "rb"))
+
 
     def load_dict(self, num_games):
         # if self.identity == 1:
@@ -292,10 +293,10 @@ class Q_learning_agent:
             self.update_epsilon()
             self.update_alpha()
         if num_game % int(self.LEARN_GAMES / 100) == 0:
-            if self.file_count == 10:
-                num_game = 0
-            self.save_dict(num_game)
-            self.save_policy(num_game)
+            if self.file_count == 5:
+                self.file_count = 0
+            self.save_dict(self.file_count)
+            self.save_policy(self.file_count)
             self.file_count += 1
         self.states_to_update = []
 
