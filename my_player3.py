@@ -133,7 +133,6 @@ class Q_learning_agent:
         self.policy_X = pickle.load(open("policy_learned_X_{}.pkl".format(num_games), "rb"))
         self.policy_O = pickle.load(open("policy_learned_O_{}.pkl".format(num_games), "rb"))
 
-
     def load_dict(self, num_games):
         # if self.identity == 1:
         self.state_q_X = pickle.load(open("qvalues_X_{}.pkl".format(num_games), "rb"))
