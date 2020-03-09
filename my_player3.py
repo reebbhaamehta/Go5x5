@@ -35,7 +35,7 @@ Learning:
 
 def string_to_state(state_string):
     state = numpy.fromstring(state_string, dtype=int, sep=" ")
-    state = numpy.reshape(state, (5, 5))
+    state = numpy.reshape(state, (GO_SIZE, GO_SIZE))
     return state
 
 
@@ -105,13 +105,13 @@ class Q_learning_agent:
         self.state_q_X = {}
         self.file_count = 0
 
-    def fight(self):
+    def fight(self, dict_num):
         self.learn = False
         self.varyA_E = False
         self.epsilon = 0
-        self.alpha = 1
-        self.policy_dump_time = 1583230107
-        self.load_policy()
+        self.alpha = 0
+        # self.load_policy(dict_num)
+        self.load_dict(dict_num)
 
     def save_policy(self, num_games):
         for states in self.state_q_X:

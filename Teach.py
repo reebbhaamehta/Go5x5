@@ -10,10 +10,13 @@ from read import readInput, readOutput
 from write import writeOutput, writeNextInput
 from random_player import RandomPlayer
 from Minimax import Minimax
+import sys
+from my_player3 import GO_SIZE
+
 X = 1
 O = 2
-TEST_GAMES = 1
-GAME_SIZE = 5
+TEST_GAMES = 50
+GAME_SIZE = GO_SIZE
 
 """
 Learning:
@@ -111,6 +114,7 @@ def testMinimax():
 
     print(p1_stats, p2_stats)
     p1_stats = [round(x / TEST_GAMES * 100.0, 1) for x in p1_stats]
+    sys.stdout = open("Minimax_resutls.txt", "a")
     if True:
         print('_' * 60)
         print('{:>15}(X) | Wins:{}% Draws:{}% Losses:{}%'.format(player1.__class__.__name__, p1_stats[1], p1_stats[0],
@@ -133,10 +137,10 @@ def testMinimax():
     # battle(qlearner, random_player, int(TEST_GAMES), True)
 
 
-def testQlearner():
+def testQlearner(dict_num):
     qlearner = Q_learning_agent()
     random_player = RandomPlayer()
-    qlearner.fight()
+    qlearner.fight(dict_num)
     # player1: Player instance.always X
     # player2: Player instance.always O
     p1_stats = [0, 0, 0]
@@ -190,12 +194,12 @@ def track_intelligence(pl_num, stats, batch, file, epsilon):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=-1)
-    args = parser.parse_args()
-    make_smarter(args.num)
-    # testQlearner()
-    # testMinimax()
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=-1)
+    # args = parser.parse_args()
+    # make_smarter(args.num)
+    # testQlearner(num)
+    testMinimax()
 # TODO: implement my own functions and classes to account for
 #  reading current / previous state and writing output files,
 #  to check if the move I am about to make is valid and all

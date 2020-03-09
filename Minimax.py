@@ -2,6 +2,7 @@ import copy
 
 # from Board import Board
 import math
+import pickle
 import random
 
 import numpy as np
@@ -37,15 +38,15 @@ class Minimax:
             return
         else:
             # score, action = self._max(board)
-            action = self.alpha_beta_cutoff_search(board, 3)
+            action = self.alpha_beta_cutoff_search(board, 4)
             return action  # board.move(action[0], action[1], self.side)
 
     def alpha_beta_cutoff_search(self, board, depth=4):
 
         def max_value(board, alpha, beta, depth):
             state = board.state_string()
-            # if state in self.cache_max:
-            #     return self.cache_max[state][0]
+            if state in self.cache_max:
+                return self.cache_max[state][0]
             if depth == 0 or board.game_end():
                 # board.visualize_board()
                 # print(depth)
@@ -82,8 +83,8 @@ class Minimax:
 
         def min_value(board, alpha, beta, depth):
             state = board.state_string()
-            # if state in self.cache_min:
-            #     return self.cache_min[state][0]
+            if state in self.cache_min:
+                return self.cache_min[state][0]
             if depth == 0 or board.game_end():
                 # board.visualize_board()
                 return board.total_score(self.side)
@@ -117,7 +118,8 @@ class Minimax:
                         return v
                     beta = min(beta, v)
             return v
-
+        self.load_dict_min()
+        self.load_dict_max()
         best_score = -np.inf
         beta = np.inf
         best_action = None
@@ -126,7 +128,6 @@ class Minimax:
             for j in range(board.size):
                 if board.valid_place_check(i, j, self.side, test_check=True):
                     candidates.append((i, j))
-        # print("ABP candidates = {}".format(candidates))
         random.shuffle(candidates)
         if not candidates:
             best_action = "PASS"
@@ -139,7 +140,27 @@ class Minimax:
                     best_score = v
                     best_action = (i, j)
                     # print(best_action, best_score)
+        self.save_dict_max()
+        self.save_dict_min()
         return best_action
+
+    def save_dict_max(self):
+        pickle.dump(self.cache_max, open("cache_max.txt", "wb"))
+
+    def save_dict_min(self):
+        pickle.dump(self.cache_min, open("cache_min.txt", "wb"))
+
+    def load_dict_min(self):
+        try:
+            self.cache_min = pickle.load(open("cache_min.txt", "rb"))
+        except EOFError:
+            self.cache_min = {}
+
+    def load_dict_max(self):
+        try:
+            self.cache_max = pickle.load(open("cache_max.txt", "rb"))
+        except EOFError:
+            self.cache_max = {}
 
 
 if __name__ == "__main__":
