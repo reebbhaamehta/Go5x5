@@ -11,7 +11,7 @@ from mygame import Game
 import numpy
 import json
 
-GO_SIZE = 5
+GO_SIZE = 3
 WIN = 1.0
 LOSS = 0
 DRAW = 0.5
@@ -35,7 +35,7 @@ Learning:
 
 def string_to_state(state_string):
     state = numpy.fromstring(state_string, dtype=int, sep=" ")
-    state = numpy.reshape(state, (5, 5))
+    state = numpy.reshape(state, (GO_SIZE, GO_SIZE))
     return state
 
 
@@ -82,8 +82,8 @@ def symmetrical_states(current_board):
 
 class Q_learning_agent:
     LEARN_GAMES = 10 ** 6
-    REDUCE_E_BY = 0.977
-    INCREASE_A_BY = 30
+    REDUCE_E_BY = 0.8
+    REDUCE_A_BY = 0.9
 
     def __init__(self, piece_type=None, epsilon=0.9, alpha=0.1, gamma=0.9, agent_type="Learning",
                  initial=numpy.random.rand(GO_SIZE, GO_SIZE), learn=True):
@@ -105,13 +105,13 @@ class Q_learning_agent:
         self.state_q_X = {}
         self.file_count = 0
 
-    def fight(self):
+    def fight(self, dict_num):
         self.learn = False
         self.varyA_E = False
         self.epsilon = 0
-        self.alpha = 1
+        self.alpha = 0
         self.policy_dump_time = 1583230107
-        self.load_policy()
+        self.load_policy(dict_num)
 
     def save_policy(self, num_games):
         for states in self.state_q_X:
@@ -129,7 +129,7 @@ class Q_learning_agent:
         pickle.dump(self.policy_X, open("policy_learned_X_{}.pkl".format(num_games), "wb"))
         pickle.dump(self.policy_O, open("policy_learned_O_{}.pkl".format(num_games), "wb"))
 
-    def load_policy(self, num_games):
+    def load_policy(self, num_games=0):
         self.policy_X = pickle.load(open("policy_learned_X_{}.pkl".format(num_games), "rb"))
         self.policy_O = pickle.load(open("policy_learned_O_{}.pkl".format(num_games), "rb"))
 
@@ -255,7 +255,8 @@ class Q_learning_agent:
     def update_alpha(self):
         # self.alpha = min(self.max_alpha, self.alpha * self.INCREASE_A_BY)
         if self.varyA_E:
-            self.alpha = 1 - self.epsilon
+            # self.alpha = self.epsilon
+            self.alpha = max(self.alpha * self.REDUCE_A_BY, 0)
 
     def update_Qvalues(self, go, num_game):
         # after a game update the q table
@@ -285,8 +286,8 @@ class Q_learning_agent:
             else:
                 # self.q_values[state][move] = self.q_values[state][move] * (1 - self.alpha) \
                                              # + self.alpha * self.gamma * max_q_value
-                base_state_action_q[move] = base_state_action_q[move] * (1 - self.alpha) \
-                                            + self.alpha * self.gamma * max_q_value
+                base_state_action_q[move] = base_state_action_q[move] \
+                                            + self.alpha * (self.gamma * max_q_value - base_state_action_q[move])
             max_q_value = max(base_state_action_q.values())
         if num_game % int(self.LEARN_GAMES / 100) == 0:
             self.update_epsilon()

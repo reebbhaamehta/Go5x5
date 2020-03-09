@@ -4,6 +4,7 @@ import pickle
 import sys
 import time
 import argparse
+from my_player3 import GO_SIZE
 from my_player3 import Q_learning_agent
 from mygame import Game
 from read import readInput, readOutput
@@ -12,8 +13,8 @@ from random_player import RandomPlayer
 from Minimax import Minimax
 X = 1
 O = 2
-TEST_GAMES = 1
-GAME_SIZE = 5
+TEST_GAMES = 1000
+GAME_SIZE = GO_SIZE
 
 """
 Learning:
@@ -58,7 +59,7 @@ def play_learn_track(go, game_number, player1, player2, p1_stats, p2_stats, batc
         p1_stats[result] += 1
         if game_number % batch == 0:
             epsilon = player1.epsilon
-            track_intelligence(1, p1_stats, batch, file, epsilon)
+            track_intelligence(1, p1_stats, batch, file, epsilon, player1.alpha)
             p1_stats = [0, 0, 0]
     elif player2.learn:
         player2.update_Qvalues(go, num_game=game_number)
@@ -69,7 +70,7 @@ def play_learn_track(go, game_number, player1, player2, p1_stats, p2_stats, batc
         p2_stats[result] += 1
         if game_number % batch == 1:
             epsilon = player2.epsilon
-            track_intelligence(2, p2_stats, batch, file, epsilon)
+            track_intelligence(2, p2_stats, batch, file, epsilon, player2.alpha)
             p2_stats = [0, 0, 0]
     return p1_stats, p2_stats
 
@@ -79,7 +80,7 @@ def make_smarter(dict_number):
     random_player = RandomPlayer()
     qlearner.alpha = 0.7
     qlearner.epsilon = 0.3
-    qlearner.varyA_E = False
+    qlearner.varyA_E = True
     if dict_number > 0:
         qlearner.load_dict(dict_number)
     battle(qlearner, random_player, int(qlearner.LEARN_GAMES), False)
@@ -133,10 +134,12 @@ def testMinimax():
     # battle(qlearner, random_player, int(TEST_GAMES), True)
 
 
-def testQlearner():
+def testQlearner(dict_num):
     qlearner = Q_learning_agent()
     random_player = RandomPlayer()
-    qlearner.fight()
+    qlearner.fight(dict_num)
+    if dict_num > 0:
+        qlearner.load_dict(dict_num)
     # player1: Player instance.always X
     # player2: Player instance.always O
     p1_stats = [0, 0, 0]
@@ -149,12 +152,12 @@ def testQlearner():
         go.new_board()
         result = go.play(player1, player2, False)
         p1_stats[result] += 1
-    # for i in range(int(TEST_GAMES)):
-    #     go = Game(GAME_SIZE)
-    #     go.verbose = False
-    #     go.new_board()
-    #     result = go.play(player2, player1, False)
-    #     p2_stats[result] += 1
+    for i in range(int(TEST_GAMES)):
+        go = Game(GAME_SIZE)
+        go.verbose = False
+        go.new_board()
+        result = go.play(player2, player1, False)
+        p2_stats[result] += 1
 
     print(p1_stats, p2_stats)
     p1_stats = [round(x / TEST_GAMES * 100.0, 1) for x in p1_stats]
@@ -166,26 +169,26 @@ def testQlearner():
                                                                  p1_stats[1]).center(50))
         print('_' * 60)
         print()
-    # p2_stats = [round(x / TEST_GAMES * 100.0, 1) for x in p2_stats]
-    #
-    # if True:
-    #     print('_' * 60)
-    #     print('{:>15}(X) | Wins:{}% Draws:{}% Losses:{}%'.format(player2.__class__.__name__, p2_stats[1], p2_stats[0],
-    #                                                              p2_stats[2]).center(50))
-    #     print('{:>15}(O) | Wins:{}% Draws:{}% Losses:{}%'.format(player1.__class__.__name__, p2_stats[2], p2_stats[0],
-    #                                                              p2_stats[1]).center(50))
-    #     print('_' * 60)
-    #     print()
+    p2_stats = [round(x / TEST_GAMES * 100.0, 1) for x in p2_stats]
+    
+    if True:
+        print('_' * 60)
+        print('{:>15}(X) | Wins:{}% Draws:{}% Losses:{}%'.format(player2.__class__.__name__, p2_stats[1], p2_stats[0],
+                                                                 p2_stats[2]).center(50))
+        print('{:>15}(O) | Wins:{}% Draws:{}% Losses:{}%'.format(player1.__class__.__name__, p2_stats[2], p2_stats[0],
+                                                                 p2_stats[1]).center(50))
+        print('_' * 60)
+        print()
     # battle(random_player, qlearner, int(TEST_GAMES), True)
     # battle(qlearner, random_player, int(TEST_GAMES), True)
 
 
 # arbitrarily
-def track_intelligence(pl_num, stats, batch, file, epsilon):
+def track_intelligence(pl_num, stats, batch, file, epsilon, alpha):
     # stats = [0, 0, 0] piece type of winner of the game (0 if it's a tie)
     stats = [round(x / batch * 100.0, 1) for x in stats]
     with open(file, 'a') as f:
-        f.write(str(pl_num) + "," + ",".join([str(e) for e in stats]) + ',' + str(epsilon))
+        f.write(str(pl_num) + "," + ",".join([str(e) for e in stats]) + ',' + str(epsilon) +','+ str(alpha))
         f.write("\n")
 
 
@@ -194,7 +197,7 @@ if __name__ == "__main__":
     parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=-1)
     args = parser.parse_args()
     make_smarter(args.num)
-    # testQlearner()
+    # testQlearner(args.num)
     # testMinimax()
 # TODO: implement my own functions and classes to account for
 #  reading current / previous state and writing output files,
