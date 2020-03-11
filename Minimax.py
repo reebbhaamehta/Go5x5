@@ -38,15 +38,15 @@ class Minimax:
             return
         else:
             # score, action = self._max(board)
-            action = self.alpha_beta_cutoff_search(board, 4)
+            action = self.alpha_beta_cutoff_search(board, 3)
             return action  # board.move(action[0], action[1], self.side)
 
     def alpha_beta_cutoff_search(self, board, depth=4):
 
         def max_value(board, alpha, beta, depth):
             state = board.state_string()
-            if state in self.cache_max:
-                return self.cache_max[state][0]
+            # if state in self.cache_max:
+                # return self.cache_max[state][0]
             if depth == 0 or board.game_end():
                 # board.visualize_board()
                 # print(depth)
@@ -83,8 +83,8 @@ class Minimax:
 
         def min_value(board, alpha, beta, depth):
             state = board.state_string()
-            if state in self.cache_min:
-                return self.cache_min[state][0]
+            # if state in self.cache_min:
+                # return self.cache_min[state][0]
             if depth == 0 or board.game_end():
                 # board.visualize_board()
                 return board.total_score(self.side)
@@ -118,8 +118,8 @@ class Minimax:
                         return v
                     beta = min(beta, v)
             return v
-        self.load_dict_min()
-        self.load_dict_max()
+        # self.load_dict_min()
+        # self.load_dict_max()
         best_score = -np.inf
         beta = np.inf
         best_action = None
@@ -140,8 +140,8 @@ class Minimax:
                     best_score = v
                     best_action = (i, j)
                     # print(best_action, best_score)
-        self.save_dict_max()
-        self.save_dict_min()
+        # self.save_dict_max()
+        # self.save_dict_min()
         return best_action
 
     def save_dict_max(self):
@@ -166,7 +166,6 @@ class Minimax:
 if __name__ == "__main__":
     N = 5
     go_game = Game(N)
-
     game_piece_type, previous_board, board = go_game.read_input()
     go_game.set_board(game_piece_type, previous_board, board)
     player = Minimax()

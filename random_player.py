@@ -1,9 +1,8 @@
 import random
-import sys
 from read import readInput
-from write import writeOutput
+from startercode.write import writeOutput
 
-from host import GO
+from startercode.host import GO
 
 
 class RandomPlayer():

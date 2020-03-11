@@ -1,27 +1,12 @@
 import copy
-import filecmp
 import pickle
-import sys
-import time
-import argparse
-from my_player3 import GO_SIZE
-from my_player3 import Q_learning_agent
-from mygame import Game
-from read import readInput, readOutput
-from write import writeOutput, writeNextInput
-from random_player import RandomPlayer
-from Minimax import Minimax
 import json
 
-X = 1
-O = 2
-TEST_GAMES = 1000
-GAME_SIZE = GO_SIZE
 
 def stringify_keys(d):
     """Convert a dict's keys to strings if they are not."""
-    for key in d.keys():
-
+    di = copy.deepcopy(d)
+    for key in di.keys():
         # check inner dict
         if isinstance(d[key], dict):
             value = stringify_keys(d[key])
@@ -42,19 +27,31 @@ def stringify_keys(d):
             del d[key]
     return d
 
+
 if __name__ == "__main__":
-            # if self.identity == 1:
-    num_games = 0
+    # if self.identity == 1:
+    num_games = 4
     state_q_X = pickle.load(open("qvalues_X_{}.pkl".format(num_games), "rb"))
     state_q_O = pickle.load(open("qvalues_O_{}.pkl".format(num_games), "rb"))
 
     state_q_O = stringify_keys(state_q_O)
     state_q_X = stringify_keys(state_q_X)
+    print(len(state_q_X))
+    print(len(state_q_O))
 
     with open("X_dict.json", "w") as file:
         file.write(json.dumps(state_q_X, sort_keys=True, indent=4))
     with open("O_dict.json", "w") as file:
         file.write(json.dumps(state_q_O, sort_keys=True, indent=4))
 
+    policy_X = pickle.load(open("policy_learned_X_{}.pkl".format(num_games), "rb"))
+    policy_O = pickle.load(open("policy_learned_O_{}.pkl".format(num_games), "rb"))
 
-    
+    policy_O = stringify_keys(policy_O)
+    policy_X = stringify_keys(policy_X)
+    print(len(policy_O))
+    print(len(policy_X))
+    with open("X_policy.json", "w") as file:
+        file.write(json.dumps(policy_X, sort_keys=True, indent=4))
+    with open("O_policy.json", "w") as file:
+        file.write(json.dumps(policy_O, sort_keys=True, indent=4))

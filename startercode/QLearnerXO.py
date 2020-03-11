@@ -1,15 +1,10 @@
 # 7042208305 :Reebbhaa Mehta
-import copy
 import math
 import pickle
-import time
 import random
 
-from read import readInput
-from write import writeOutput
 # from game import Game
 import numpy
-import json
 
 GO_SIZE = 3
 WIN = 1.0

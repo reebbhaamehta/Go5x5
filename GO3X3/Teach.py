@@ -1,7 +1,3 @@
-import copy
-import filecmp
-import pickle
-import sys
 import time
 import argparse
 from my_player3 import Q_learning_agent
@@ -79,7 +75,7 @@ def make_smarter(dict_number):
     qlearner = Q_learning_agent()
     random_player = RandomPlayer()
     qlearner.alpha = 0.5
-    qlearner.epsilon = 0.3
+    qlearner.epsilon = 0.2
     qlearner.varyA_E = True
     if dict_number > 0:
         qlearner.load_dict(dict_number)
@@ -197,8 +193,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=-1)
     args = parser.parse_args()
-    make_smarter(args.num)
-    # testQlearner(args.num)
+    # make_smarter(args.num)
+    testQlearner(args.num)
     # testMinimax()
 # TODO: implement my own functions and classes to account for
 #  reading current / previous state and writing output files,

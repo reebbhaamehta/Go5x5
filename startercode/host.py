@@ -1,13 +1,9 @@
 import sys
-import random
-import timeit
-import math
 import argparse
-from collections import Counter
 from copy import deepcopy
 
 from read import *
-from write import writeNextInput
+from startercode.write import writeNextInput
 
 
 class GO:

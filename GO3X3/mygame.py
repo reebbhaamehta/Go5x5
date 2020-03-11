@@ -89,7 +89,6 @@ class Game:
         """
         board = self.board
         count = 0
-        count_opponent = 0
         if piece_type == 1:
             opponent = 2
         else:
@@ -116,20 +115,11 @@ class Game:
                             # I get + 2 points if I place my stone near an opponents
                             if board[piece[0]][piece[1]] == opponent:
                                 count += 2
-                if board[i][j] == opponent:
-                    count_opponent += 1
-                    ally_members = self.ally_dfs(i, j)
-                    for member in ally_members:
-                        neighbors = self.detect_neighbor(member[0], member[1])
-                        for piece in neighbors:
-                            if board[piece[0]][piece[1]] == 0:
-                                count_opponent += 1
-
         # I should get points if I minimize my opponents liberties.
-        self.opponent_prev_liberties = self.opponent_liberties
-        self.opponent_liberties = count_opponent
-        if self.opponent_liberties < self.opponent_prev_liberties:
-            count += 2
+        # self.opponent_prev_liberties = self.opponent_liberties
+        # self.opponent_liberties = self.count_liberties(opponent)
+        # if self.opponent_liberties < self.opponent_prev_liberties:
+        #     count += 2
 
         self.prev_opponent_score = self.opponent_score
         if piece_type == 1:
@@ -389,17 +379,6 @@ class Game:
             return 1
         elif cnt_1 < cnt_2 + self.komi:
             return 2
-        else:
-            return 0
-
-    def komi_score(self):
-
-        cnt_1 = self.score(1)
-        cnt_2 = self.score(2)
-        if cnt_1 > cnt_2 + self.komi:
-            return cnt_1
-        elif cnt_1 < cnt_2 + self.komi:
-            return cnt_2
         else:
             return 0
 

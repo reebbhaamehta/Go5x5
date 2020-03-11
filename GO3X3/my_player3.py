@@ -2,10 +2,13 @@
 import math
 import pickle
 import random
+
+from read import readInput
+from startercode.write import writeOutput
 from mygame import Game
 import numpy
 
-GO_SIZE = 5
+GO_SIZE = 3
 WIN = 1
 LOSS = 0
 DRAW = 2
@@ -15,7 +18,7 @@ INVALID_MOVE = -1.0
 Playing:
 - play game of go through the host
 - against all players
-- select best moves based on q value tables or policy tables
+- select best moves based on q value tables
 """
 """
 Learning:
@@ -75,7 +78,7 @@ def symmetrical_states(current_board):
 
 
 class Q_learning_agent:
-    LEARN_GAMES = 10 ** 7
+    LEARN_GAMES = 10 ** 6
     REDUCE_E_BY = 0.8
     REDUCE_A_BY = 0.9
 
@@ -87,7 +90,6 @@ class Q_learning_agent:
         self.agent_type = agent_type  # either learning or playing
         self.type = "mine"
         self.identity = piece_type
-        self.opponent = 1 if piece_type == 2 else 2
         self.learn = learn
         self.epsilon = epsilon
         self.alpha = alpha
@@ -198,8 +200,8 @@ class Q_learning_agent:
                 if go.valid_place_check(actual_orientation_action[0], actual_orientation_action[1], piece_type, test_check=True):
                     action_in_base = orient_action_to_base(actual_orientation_action, orientation)
                     valid_places.append(action_in_base)
-                else:
-                    action_q_vals[actions] = INVALID_MOVE
+                # else:
+                #     action_q_vals[actions] = INVALID_MOVE
         # print(valid_places)
         if not valid_places:
             action = "PASS"
@@ -219,7 +221,6 @@ class Q_learning_agent:
     def get_input(self, go, piece_type):
         if self.identity != piece_type and go.score(piece_type) <= 0:
             self.identity = piece_type
-            self.opponent = 1 if piece_type == 2 else 2
         if go.game_end():
             return
         action = self.max_qvalue(go, piece_type)
@@ -293,7 +294,7 @@ class Q_learning_agent:
         if num_game % int(self.LEARN_GAMES / 100) == 0:
             if self.file_count == 5:
                 self.file_count = 0
-            # self.save_dict(self.file_count)
+            self.save_dict(self.file_count)
             self.save_policy(self.file_count)
             self.file_count += 1
         self.states_to_update = []
@@ -301,11 +302,11 @@ class Q_learning_agent:
 
 if __name__ == "__main__":
     N = 5
+    game_piece_type, previous_board, board = readInput(N)
     go_game = Game(N)
-    game_piece_type, previous_board, board = go_game.read_input()
     go_game.set_board(game_piece_type, previous_board, board)
     player = Q_learning_agent()
     Q_learning_agent.identity = game_piece_type
-    player.fight(0)
+    player.fight()
     next_action = player.get_input(go_game, game_piece_type)
-    go_game.write_output(next_action)
+    writeOutput(next_action)
