@@ -293,7 +293,7 @@ class Q_learning_agent:
         if num_game % int(self.LEARN_GAMES / 100) == 0:
             if self.file_count == 5:
                 self.file_count = 0
-            # self.save_dict(self.file_count)
+            self.save_dict(0)
             self.save_policy(self.file_count)
             self.file_count += 1
         self.states_to_update = []

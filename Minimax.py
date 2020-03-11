@@ -45,11 +45,8 @@ class Minimax:
 
         def max_value(board, alpha, beta, depth):
             state = board.state_string()
-            # if state in self.cache_max:
-                # return self.cache_max[state][0]
             if depth == 0 or board.game_end():
                 # board.visualize_board()
-                # print(depth)
                 return board.total_score(self.side)
             v = -np.inf
             candidates = []

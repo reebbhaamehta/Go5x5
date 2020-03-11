@@ -78,7 +78,7 @@ class QLearner:
         max_q_value = -1.0
         for hist in self.history_states:
             state, move = hist
-            # q = self.Q(state)
+            q = self.Q(state)
             self.q_values[state] = self.Q(state)
             if max_q_value < 0:
                 self.q_values[state][move[0]][move[1]] = reward

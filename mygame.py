@@ -131,14 +131,14 @@ class Game:
         if self.opponent_liberties < self.opponent_prev_liberties:
             count += 2
 
-        self.prev_opponent_score = self.opponent_score
+        # self.prev_opponent_score = self.opponent_score
         if piece_type == 1:
             count = count - self.komi
-            self.opponent_score = self.score(2)
-        else:
-            self.opponent_score = self.score(1)
-        if self.opponent_score < self.prev_opponent_score:
-            count = count + 2
+        #     self.opponent_score = self.score(2)
+        # else:
+        #     self.opponent_score = self.score(1)
+        # if self.opponent_score < self.prev_opponent_score:
+        #     count = count + 2
         return count
 
     def count_liberties(self, opponent):
