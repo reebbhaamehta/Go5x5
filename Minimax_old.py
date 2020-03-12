@@ -13,9 +13,9 @@ WIN_REWARD = 1.0
 DRAW_REWARD = 0.0
 LOSS_REWARD = -1.0
 GO_SIZE = 5
-DEPTH = 3
 
-class Minimax:
+
+class Minimax_old:
 
     def __init__(self, side=None):
         self.side = side
@@ -24,6 +24,7 @@ class Minimax:
         self.num_game = 0
         self.opponent = 1 if self.side == 2 else 2
         self.size = GO_SIZE
+
 
     def total_score(self, game, piece_type):
         """
@@ -35,29 +36,18 @@ class Minimax:
         board = game.board
         count = 0
         count_opponent = 0
-        liberties = 0
-        liberty_list = []
-        opponent_liberties = 0
-        opponent_liberty_list = []
-        opponent_neighbors = {}
         if piece_type == 1:
             opponent = 2
         else:
             opponent = 1
-        edges = [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4),
-                 (1, 0), (2, 0), (3, 0), (4, 0),
-                 (4, 1), (4, 2), (4, 3), (4, 4),
-                 (1, 4), (2, 4), (3, 4)]
-        # if I place my piece in the center I get + 2 points
-        if board[2][2] == piece_type:
-            count = count + 2
-        # if I place a piece on the edges I get - 2 points
-        for point in edges:
-            if board[point[0]][[point[1]]] == piece_type:
-                count += -3
-
         for i in range(self.size):
             for j in range(self.size):
+                # if I place my piece in the center I get + 2 points
+                if board[2][2] == piece_type:
+                    count = count + 3
+                # if I place a piece on the edges I get - 2 points
+                if board[i][4] == piece_type or board[0][j] == piece_type:
+                    count = count - 2
                 # I get 1 point for each of my stones on the board
                 if board[i][j] == piece_type:
                     count += 1
@@ -65,66 +55,14 @@ class Minimax:
                     for member in ally_members:
                         neighbors = game.detect_neighbor(member[0], member[1])
                         for piece in neighbors:
-                            # If there is empty space around a piece, it has liberty
+                        # If there is empty space around a piece, it has liberty
                             # I get + 2 points for each liberty I have
                             if board[piece[0]][piece[1]] == 0:
-                                if piece not in liberty_list:
-                                    liberty_list.append(piece)
-                                    count += 1
-                                # count += 2
-                            if len(liberty_list) == 1:
-                                piece = liberty_list.pop(0)
-                                if board[piece[0]][piece[1]] == opponent:
-                                    count += -20
+                                count += 2
                             # I get + 2 points if I place my stone near an opponents
-                            # if board[piece[0]][piece[1]] == opponent:
-                            #     count += 1
-                if board[i][j] == opponent:
-                    # count_opponent += 1
-                    opponent_neighbors = {}
-                    ally_members = game.ally_dfs(i, j)
-                    for member in ally_members:
-                        neighbors = game.detect_neighbor(member[0], member[1])
-                        occurance = 0
-                        opponent_liberty_list = []
-                        for piece in neighbors:
-                            if piece not in opponent_neighbors:
-                                occurance = 1
-                            else:
-                                occurance += 1
-                                # game.visualize_board()
-                            opponent_neighbors[piece] = occurance
-                            if board[piece[0]][piece[1]] == 0:
-                                if piece not in opponent_liberty_list:
-                                    opponent_liberty_list.append(piece)
-                                    # count += -1
-                            if len(opponent_liberty_list) == 1:
-                                piece = opponent_liberty_list.pop(0)
-                                if board[piece[0]][piece[1]] == piece_type:
-                                    count += 20
-                            if board[piece[0]][piece[1]] == piece_type:
-                                count += opponent_neighbors[piece]
-                                # count += 4
-                                # count_opponent += 1
+                            if board[piece[0]][piece[1]] == opponent:
+                                count += 2
 
-        # I should get points if I minimize my opponents liberties.
-        liberties = len(liberty_list)
-        # count += liberties
-        # opponent_liberties = len(opponent_liberty_list)
-        # print(opponent_liberty_list)
-        # print(opponent)
-        # game.visualize_board()
-        # print(opponent_neighbors)
-        # for point in opponent_neighbors:
-        #     if board[point[0]][point[1]] == piece_type:
-        #         count += opponent_neighbors[point]
-        #         count += 100
-                # print(point)
-                # print(piece_type)
-                # game.visualize_board()
-                # exit()
-
-        # self.prev_opponent_score = self.opponent_score
         if piece_type == 1:
             count = count - game.komi
         #     self.opponent_score = self.score(2)
@@ -132,11 +70,6 @@ class Minimax:
         #     self.opponent_score = self.score(1)
         # if self.opponent_score < self.prev_opponent_score:
         #     count = count + 2
-        # print("opponent liberties={}".format(opponent_liberties))
-        # print("self liberties={}".format(liberties))
-        # print("opponent = {}".format(opponent))
-        # self.visualize_board()
-
         return count
 
     def set_side(self, side):
@@ -153,18 +86,17 @@ class Minimax:
             if board.valid_place_check(2, 2, self.side, True):
                 copy_board = copy.deepcopy(board)
                 copy_board.place_chess(2, 2, self.side, True)
-                print("Minimax: piece_type = {}".format(self.side), \
+                print("Minimax_old: piece_type = {}".format(self.side), \
                       "current board value = {}".format(self.total_score(copy_board, self.side)))
                 return 2, 2
         if board.game_end():
             return
         else:
             # score, action = self._max(board)
-            action = self.alpha_beta_cutoff_search(board, DEPTH)
+            action = self.alpha_beta_cutoff_search(board, 3)
             copy_board = copy.deepcopy(board)
-            if action != "PASS":
-                copy_board.place_chess(action[0], action[1], self.side, True)
-            print("Minimax: piece_type = {}".format(self.side), \
+            copy_board.place_chess(action[0], action[1], self.side, True)
+            print("Minimax_old: piece_type = {}".format(self.side), \
                   "current board value = {}".format(self.total_score(copy_board, self.side)))
             return action  # board.move(action[0], action[1], self.side)
 
@@ -208,7 +140,7 @@ class Minimax:
         def min_value(board, alpha, beta, depth):
             state = board.state_string()
             # if state in self.cache_min:
-                # return self.cache_min[state][0]
+            # return self.cache_min[state][0]
             if depth == 0 or board.game_end():
                 # board.visualize_board()
                 return self.total_score(board, self.side)
@@ -242,6 +174,7 @@ class Minimax:
                         return v
                     beta = min(beta, v)
             return v
+
         # self.load_dict_min()
         # self.load_dict_max()
         best_score = -np.inf
@@ -301,10 +234,11 @@ class Minimax:
                     count_white += 1
 
         if piece_type == 1:
-            diff = count_black-count_white
+            diff = count_black - count_white
         else:
-            diff = count_white-count_black
+            diff = count_white - count_black
         return diff
+
 
 if __name__ == "__main__":
     N = 5

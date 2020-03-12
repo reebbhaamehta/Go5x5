@@ -80,12 +80,73 @@ class Game:
                     count += 1
         return count
 
-    def count_liberties(self, side):
+    def total_score(self, piece_type):
+        """
+        Get score of a player by counting the number of stones.
+
+        :param piece_type: 1('X') or 2('O').
+        :return: boolean indicating whether the game should end.
+        """
+        board = self.board
+        count = 0
+        count_opponent = 0
+        if piece_type == 1:
+            opponent = 2
+        else:
+            opponent = 1
+        for i in range(self.size):
+            for j in range(self.size):
+                # if I place my piece in the center I get + 2 points
+                if board[2][2] == piece_type:
+                    count = count + 3
+                # if I place a piece on the edges I get - 2 points
+                if board[i][4] == piece_type or board[0][j] == piece_type:
+                    count = count - 2
+                # I get 1 point for each of my stones on the board
+                if board[i][j] == piece_type:
+                    count += 1
+                    ally_members = self.ally_dfs(i, j)
+                    for member in ally_members:
+                        neighbors = self.detect_neighbor(member[0], member[1])
+                        for piece in neighbors:
+                        # If there is empty space around a piece, it has liberty
+                            # I get + 2 points for each liberty I have
+                            if board[piece[0]][piece[1]] == 0:
+                                count += 2
+                            # I get + 2 points if I place my stone near an opponents
+                            if board[piece[0]][piece[1]] == opponent:
+                                count += 2
+                # if board[i][j] == opponent:
+                    #count_opponent += 1
+                    #ally_members = self.ally_dfs(i, j)
+                    #for member in ally_members:
+                        #neighbors = self.detect_neighbor(member[0], member[1])
+                        #for piece in neighbors:
+                            #if board[piece[0]][piece[1]] == 0:
+                                #count_opponent += 1
+
+        # I should get points if I minimize my opponents liberties.
+        self.opponent_prev_liberties = self.opponent_liberties
+        self.opponent_liberties = count_opponent
+        if self.opponent_liberties < self.opponent_prev_liberties:
+            count += 2
+
+        # self.prev_opponent_score = self.opponent_score
+        if piece_type == 1:
+            count = count - self.komi
+        #     self.opponent_score = self.score(2)
+        # else:
+        #     self.opponent_score = self.score(1)
+        # if self.opponent_score < self.prev_opponent_score:
+        #     count = count + 2
+        return count
+
+    def count_liberties(self, opponent):
         board = self.board
         count = 0
         for i in range(self.size):
             for j in range(self.size):
-                if board[i][j] != side:
+                if board[i][j] != opponent:
                     ally_members = self.ally_dfs(i, j)
                     for member in ally_members:
                         neighbors = self.detect_neighbor(member[0], member[1])

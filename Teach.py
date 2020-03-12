@@ -10,10 +10,11 @@ from random_player import RandomPlayer
 from Minimax import Minimax
 import sys
 from my_player3 import GO_SIZE
+from Minimax_old import Minimax_old
 
 X = 1
 O = 2
-TEST_GAMES = 10
+TEST_GAMES = 1
 GAME_SIZE = GO_SIZE
 
 """
@@ -90,24 +91,25 @@ def testMinimax():
     # qlearner = Q_learning_agent()
     random_player = RandomPlayer()
     minimax = Minimax()
+    minimax_old = Minimax_old()
     # qlearner.fight()
     # player1: Player instance.always X
     # player2: Player instance.always O
     p1_stats = [0, 0, 0]
     p2_stats = [0, 0, 0]
     player1 = minimax
-    player2 = random_player
+    player2 = minimax_old
     for i in range(int(TEST_GAMES)):
         go = Game(GAME_SIZE)
-        go.verbose = False
+        go.verbose = True
         go.new_board()
-        result = go.play(player1, player2, False)
+        result = go.play(player1, player2, True)
         p1_stats[result] += 1
     for i in range(int(TEST_GAMES)):
         go = Game(GAME_SIZE)
-        go.verbose = False
+        go.verbose = True
         go.new_board()
-        result = go.play(player2, player1, False)
+        result = go.play(player2, player1, True)
         p2_stats[result] += 1
 
     print(p1_stats, p2_stats)
@@ -194,12 +196,12 @@ def track_intelligence(pl_num, stats, batch, file, epsilon, alpha):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=-1)
-    args = parser.parse_args()
-    make_smarter(args.num)
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=-1)
+    # args = parser.parse_args()
+    # make_smarter(args.num)
     # testQlearner(args.num)
-    # testMinimax()
+    testMinimax()
 # TODO: implement my own functions and classes to account for
 #  reading current / previous state and writing output files,
 #  to check if the move I am about to make is valid and all
