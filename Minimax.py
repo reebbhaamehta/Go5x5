@@ -54,7 +54,7 @@ class Minimax:
         # if I place a piece on the edges I get - 2 points
         for point in edges:
             if board[point[0]][[point[1]]] == piece_type:
-                count += -3
+                count += -2
 
         for i in range(self.size):
             for j in range(self.size):
@@ -70,12 +70,12 @@ class Minimax:
                             if board[piece[0]][piece[1]] == 0:
                                 if piece not in liberty_list:
                                     liberty_list.append(piece)
-                                    count += 1
-                                # count += 2
-                            if len(liberty_list) == 1:
-                                piece = liberty_list.pop(0)
-                                if board[piece[0]][piece[1]] == opponent:
-                                    count += -20
+                                    # count += 1
+                                count += 1
+                            # if len(liberty_list) == 1:
+                            #     piece = liberty_list.pop(0)
+                            #     if board[piece[0]][piece[1]] == opponent:
+                            #         count += -1
                             # I get + 2 points if I place my stone near an opponents
                             # if board[piece[0]][piece[1]] == opponent:
                             #     count += 1
@@ -91,7 +91,7 @@ class Minimax:
                             if piece not in opponent_neighbors:
                                 occurance = 1
                             else:
-                                occurance += 1
+                                occurance += -1
                                 # game.visualize_board()
                             opponent_neighbors[piece] = occurance
                             if board[piece[0]][piece[1]] == 0:
@@ -104,7 +104,7 @@ class Minimax:
                                     count += 20
                             if board[piece[0]][piece[1]] == piece_type:
                                 count += opponent_neighbors[piece]
-                                # count += 4
+                                count += 4
                                 # count_opponent += 1
 
         # I should get points if I minimize my opponents liberties.
