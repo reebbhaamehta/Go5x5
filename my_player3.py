@@ -295,7 +295,7 @@ class Q_learning_agent:
             if self.file_count == 1:
                 self.file_count = 0
             self.save_dict(self.file_count)
-            self.save_policy(self.file_count)
+            # self.save_policy(self.file_count)
             self.file_count += 1
         self.states_to_update = []
 
