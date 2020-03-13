@@ -24,6 +24,7 @@ class Minimax_old:
         self.num_game = 0
         self.opponent = 1 if self.side == 2 else 2
         self.size = GO_SIZE
+        self.learn = False
 
 
     def total_score(self, game, piece_type):
@@ -86,8 +87,8 @@ class Minimax_old:
             if board.valid_place_check(2, 2, self.side, True):
                 copy_board = copy.deepcopy(board)
                 copy_board.place_chess(2, 2, self.side, True)
-                print("Minimax_old: piece_type = {}".format(self.side), \
-                      "current board value = {}".format(self.total_score(copy_board, self.side)))
+                # print("Minimax_old: piece_type = {}".format(self.side), \
+                #       "current board value = {}".format(self.total_score(copy_board, self.side)))
                 return 2, 2
         if board.game_end():
             return
@@ -96,8 +97,8 @@ class Minimax_old:
             action = self.alpha_beta_cutoff_search(board, 3)
             copy_board = copy.deepcopy(board)
             copy_board.place_chess(action[0], action[1], self.side, True)
-            print("Minimax_old: piece_type = {}".format(self.side), \
-                  "current board value = {}".format(self.total_score(copy_board, self.side)))
+            # print("Minimax_old: piece_type = {}".format(self.side), \
+                  # "current board value = {}".format(self.total_score(copy_board, self.side)))
             return action  # board.move(action[0], action[1], self.side)
 
     def alpha_beta_cutoff_search(self, board, depth=4):
@@ -245,7 +246,7 @@ if __name__ == "__main__":
     go_game = Game(N)
     game_piece_type, previous_board, board = go_game.read_input()
     go_game.set_board(game_piece_type, previous_board, board)
-    player = Minimax()
+    player = Minimax_old()
     player.side = game_piece_type
     print(game_piece_type)
     # player.fight()

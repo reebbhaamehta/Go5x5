@@ -76,8 +76,8 @@ def symmetrical_states(current_board):
 
 class Q_learning_agent:
     LEARN_GAMES = 10 ** 7
-    REDUCE_E_BY = 0.8
-    REDUCE_A_BY = 0.9
+    REDUCE_E_BY = 0.965
+    REDUCE_A_BY = 0.955
 
     def __init__(self, piece_type=None, epsilon=0.9, alpha=0.1, gamma=0.9, agent_type="Learning",
                  initial=numpy.random.rand(GO_SIZE, GO_SIZE), learn=True):
@@ -91,10 +91,10 @@ class Q_learning_agent:
         self.learn = learn
         self.epsilon = epsilon
         self.alpha = alpha
-        self.min_epsilon = 0  # .05
+        self.min_epsilon = 0.05
         self.policy_X = {}
         self.policy_O = {}
-        self.max_alpha = 0.95
+        self.min_alpha = 0.05
         self.varyA_E = True
         self.state_q_O = {}
         self.state_q_X = {}
@@ -107,6 +107,7 @@ class Q_learning_agent:
         self.alpha = 0
         # self.load_policy(dict_num)
         self.load_dict(dict_num)
+
 
     def save_policy(self, num_games):
         for states in self.state_q_X:
@@ -252,7 +253,7 @@ class Q_learning_agent:
         # self.alpha = min(self.max_alpha, self.alpha * self.INCREASE_A_BY)
         if self.varyA_E:
             # self.alpha = self.epsilon
-            self.alpha = max(self.alpha * self.REDUCE_A_BY, 0)
+            self.alpha = max(self.alpha * self.REDUCE_A_BY, self.min_alpha)
 
     def update_Qvalues(self, go, num_game):
         # after a game update the q table
@@ -291,7 +292,7 @@ class Q_learning_agent:
             self.update_epsilon()
             self.update_alpha()
         if num_game % int(self.LEARN_GAMES / 100) == 0:
-            if self.file_count == 5:
+            if self.file_count == 1:
                 self.file_count = 0
             self.save_dict(0)
             self.save_policy(self.file_count)
