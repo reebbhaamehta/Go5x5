@@ -63,6 +63,7 @@ class Minimax:
                     count += 1
                     ally_members = game.ally_dfs(i, j)
                     for member in ally_members:
+                        liberty_list = []
                         neighbors = game.detect_neighbor(member[0], member[1])
                         for piece in neighbors:
                             # If there is empty space around a piece, it has liberty
@@ -70,73 +71,34 @@ class Minimax:
                             if board[piece[0]][piece[1]] == 0:
                                 if piece not in liberty_list:
                                     liberty_list.append(piece)
-                                    # count += 1
+                                    # count += 2
                                 count += 1
-                            # if len(liberty_list) == 1:
-                            #     piece = liberty_list.pop(0)
-                            #     if board[piece[0]][piece[1]] == opponent:
-                            #         count += -1
                             # I get + 2 points if I place my stone near an opponents
-                            # if board[piece[0]][piece[1]] == opponent:
-                            #     count += 1
+                            if board[piece[0]][piece[1]] == opponent:
+                                count += 1
                 if board[i][j] == opponent:
                     # count_opponent += 1
                     opponent_neighbors = {}
                     ally_members = game.ally_dfs(i, j)
+                    surrounded = {}
                     for member in ally_members:
                         neighbors = game.detect_neighbor(member[0], member[1])
-                        occurance = 0
                         opponent_liberty_list = []
+                        surrounded[member] = True
                         for piece in neighbors:
-                            if piece not in opponent_neighbors:
-                                occurance = 1
-                            else:
-                                occurance += -1
-                                # game.visualize_board()
-                            opponent_neighbors[piece] = occurance
+                            if board[piece[0]][piece[1]] == opponent or board[piece[0]][piece[1]] == 0:
+                                surrounded[member] = False
+                            #     # game.visualize_board()
                             if board[piece[0]][piece[1]] == 0:
                                 if piece not in opponent_liberty_list:
                                     opponent_liberty_list.append(piece)
                                     # count += -1
-                            if len(opponent_liberty_list) == 1:
-                                piece = opponent_liberty_list.pop(0)
-                                if board[piece[0]][piece[1]] == piece_type:
-                                    count += 20
                             if board[piece[0]][piece[1]] == piece_type:
-                                count += opponent_neighbors[piece]
                                 count += 4
-                                # count_opponent += 1
-
-        # I should get points if I minimize my opponents liberties.
-        liberties = len(liberty_list)
-        # count += liberties
-        # opponent_liberties = len(opponent_liberty_list)
-        # print(opponent_liberty_list)
-        # print(opponent)
-        # game.visualize_board()
-        # print(opponent_neighbors)
-        # for point in opponent_neighbors:
-        #     if board[point[0]][point[1]] == piece_type:
-        #         count += opponent_neighbors[point]
-        #         count += 100
-                # print(point)
-                # print(piece_type)
-                # game.visualize_board()
-                # exit()
-
-        # self.prev_opponent_score = self.opponent_score
+                        if surrounded[member]:
+                            count += 30
         if piece_type == 1:
             count = count - game.komi
-        #     self.opponent_score = self.score(2)
-        # else:
-        #     self.opponent_score = self.score(1)
-        # if self.opponent_score < self.prev_opponent_score:
-        #     count = count + 2
-        # print("opponent liberties={}".format(opponent_liberties))
-        # print("self liberties={}".format(liberties))
-        # print("opponent = {}".format(opponent))
-        # self.visualize_board()
-
         return count
 
     def set_side(self, side):
