@@ -95,8 +95,9 @@ class Minimax_old:
         else:
             # score, action = self._max(board)
             action = self.alpha_beta_cutoff_search(board, 3)
-            copy_board = copy.deepcopy(board)
-            copy_board.place_chess(action[0], action[1], self.side, True)
+            if action != "PASS":
+                copy_board = copy.deepcopy(board)
+                copy_board.place_chess(action[0], action[1], self.side, True)
             # print("Minimax_old: piece_type = {}".format(self.side), \
                   # "current board value = {}".format(self.total_score(copy_board, self.side)))
             return action  # board.move(action[0], action[1], self.side)

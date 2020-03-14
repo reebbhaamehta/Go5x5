@@ -114,7 +114,7 @@ class Minimax:
             self.opponent = 1 if self.side == 2 else 2
             if board.valid_place_check(2, 2, self.side, True):
                 copy_board = copy.deepcopy(board)
-                copy_board.place_chess(2, 2, self.side, True)
+                copy_board.next_board(2, 2, self.side, True)
                 print("Minimax: piece_type = {}".format(self.side), \
                       "current board value = {}".format(self.total_score(copy_board, self.side)))
                 return 2, 2
@@ -125,7 +125,7 @@ class Minimax:
             action = self.alpha_beta_cutoff_search(board, DEPTH)
             copy_board = copy.deepcopy(board)
             if action != "PASS":
-                copy_board.place_chess(action[0], action[1], self.side, True)
+                copy_board.next_board(action[0], action[1], self.side, True)
             print("Minimax: piece_type = {}".format(self.side), \
                   "current board value = {}".format(self.total_score(copy_board, self.side)))
             return action  # board.move(action[0], action[1], self.side)
@@ -154,7 +154,7 @@ class Minimax:
             else:
                 for i, j in candidates:
                     copyBoard = copy.deepcopy(board)
-                    copyBoard.place_chess(i, j, self.side, False)
+                    copyBoard.next_board(i, j, self.side, False)
                     v = max(v, min_value(copyBoard, alpha, beta, depth - 1))
                     self.cache_max[state] = (v, (i, j))
                     # print("-"*60)
@@ -190,7 +190,7 @@ class Minimax:
             else:
                 for i, j in candidates:
                     copyBoard = copy.deepcopy(board)
-                    valid = copyBoard.place_chess(i, j, self.opponent, True)
+                    valid = copyBoard.next_board(i, j, self.opponent, True)
                     if not valid:
                         raise ValueError("in min invalid move")
                     v = min(v, max_value(copyBoard, alpha, beta, depth - 1))
@@ -220,7 +220,7 @@ class Minimax:
         else:
             for i, j in candidates:
                 copyBoard = copy.deepcopy(board)
-                copyBoard.place_chess(i, j, self.side, True)
+                copyBoard.next_board(i, j, self.side, True)
                 v = min_value(copyBoard, best_score, beta, depth)
                 if v > best_score:
                     best_score = v
@@ -271,8 +271,8 @@ class Minimax:
 if __name__ == "__main__":
     N = 5
     go_game = Game(N)
-    game_piece_type, previous_board, board = go_game.read_input()
-    go_game.set_board(game_piece_type, previous_board, board)
+    game_piece_type, previous_board, current_board = go_game.read_input()
+    go_game.set_board(game_piece_type, previous_board, current_board)
     player = Minimax()
     player.side = game_piece_type
     print(game_piece_type)

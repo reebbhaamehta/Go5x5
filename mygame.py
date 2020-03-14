@@ -17,21 +17,20 @@ class Game:
         self.board = numpy.array(numpy.zeros((self.size, self.size)))
         self.previous_board = copy.deepcopy(self.board)
         self.X_move = True
-        self.next_board = copy.deepcopy(self.board)
         self.prev_opponent_score = 0
         self.opponent_score = 0
         self.opponent_prev_liberties = 0
         self.opponent_liberties = 0
 
-
-
-
-    def next_board(self, possible_move, piece_type):
-        board = self.board
-        if possible_move != "PASS":
-            board[possible_move[0]][possible_move[1]] = piece_type
-        self.next_board = board
-        return self.next_board
+    def next_board(self, i, j, piece_type, test_check=True):
+        # saves the board after pacing the stone and removing died pieces.
+        valid_placement = self.place_chess(i, j, piece_type, test_check)
+        if not valid_placement:
+            raise ValueError("in next_board, invalid move")
+        # Remove the dead pieces of opponent
+        self.died_pieces = self.remove_died_pieces(3 - piece_type)
+        self.remove_certain_pieces(self.died_pieces)
+        return valid_placement
 
     def new_board(self):
         self.board = numpy.array([[0 for x in range(self.size)] for y in range(self.size)])  # Empty space marked as 0
@@ -78,21 +77,6 @@ class Game:
             for j in range(self.size):
                 if board[i][j] == piece_type:
                     count += 1
-        return count
-
-    def count_liberties(self, side):
-        board = self.board
-        count = 0
-        for i in range(self.size):
-            for j in range(self.size):
-                if board[i][j] != side:
-                    ally_members = self.ally_dfs(i, j)
-                    for member in ally_members:
-                        neighbors = self.detect_neighbor(member[0], member[1])
-                        for piece in neighbors:
-                            # If there is empty space around a piece, it has liberty
-                            if board[piece[0]][piece[1]] == 0:
-                                count += 1
         return count
 
     def find_liberty(self, i, j):
@@ -217,7 +201,8 @@ class Game:
         """
 
         died_pieces = self.find_died_pieces(piece_type)
-        if not died_pieces: return []
+        if not died_pieces:
+            return []
         self.remove_certain_pieces(died_pieces)
         return died_pieces
 
@@ -264,6 +249,7 @@ class Game:
         :param j: column number of the board.
         :return: a list containing the all allies row and column (row, column) of position (i, j).
         """
+        ini = (i, j)
         stack = [(i, j)]  # stack for DFS serach
         ally_members = []  # record allies positions during the search
         while stack:
@@ -273,6 +259,12 @@ class Game:
             for ally in neighbor_allies:
                 if ally not in stack and ally not in ally_members:
                     stack.append(ally)
+
+        if len(ally_members) > 3:
+            print(ally_members)
+            self.visualize_board()
+            print(ini)
+            exit()
         return ally_members
 
     def set_board(self, piece_type, previous_board, board):
@@ -434,6 +426,7 @@ class Game:
 
             self.n_move += 1
             self.X_move = not self.X_move  # Players take turn
+
 
     def read_input(self):
         with open("input.txt", 'r') as f:
