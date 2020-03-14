@@ -197,12 +197,15 @@ def track_intelligence(pl_num, stats, batch, file, epsilon, alpha):
 
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=-1)
-    # args = parser.parse_args()
-    # make_smarter(args.num)
-    # testQlearner(args.num)
-    testMinimax()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--run", type=int, help="minimax = 1 or qlearner = 0", default=1)
+    parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=-1)
+    args = parser.parse_args()
+    if args.run == 1:
+        testMinimax()
+    else:
+        make_smarter(args.num)
+        # testQlearner(args.num)
 # TODO: implement my own functions and classes to account for
 #  reading current / previous state and writing output files,
 #  to check if the move I am about to make is valid and all
