@@ -15,6 +15,7 @@ LOSS_REWARD = -1.0
 GO_SIZE = 5
 DEPTH = 3
 
+
 class Minimax:
 
     def __init__(self, side=None):
@@ -39,64 +40,60 @@ class Minimax:
         liberty_list = []
         opponent_liberties = 0
         opponent_liberty_list = []
-        opponent_neighbors = {}
+        opponents_as_neighbors = []
         if piece_type == 1:
             opponent = 2
         else:
             opponent = 1
-        edges = [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4),
-                 (1, 0), (2, 0), (3, 0), (4, 0),
-                 (4, 1), (4, 2), (4, 3), (4, 4),
-                 (1, 4), (2, 4), (3, 4)]
-        # if I place my piece in the center I get + 2 points
         if board[2][2] == piece_type:
             count = count + 2
-        # if I place a piece on the edges I get - 2 points
-        for point in edges:
-            if board[point[0]][[point[1]]] == piece_type:
-                count += -2
-
         for i in range(self.size):
             for j in range(self.size):
-                # I get 1 point for each of my stones on the board
-                if board[i][j] == piece_type:
-                    count += 1
+                # if I place a piece on the edges I get - 2 points
+                if board[i][4] == self.side or \
+                        board[j][4] == self.side or \
+                        board[0][i] == self.side or \
+                        board[0][j] == self.side:
+                    count += -2
+                # for every piece I have on the board I get two points
+                if board[i][j] == self.side:
+                    count += 2
+                    liberty_list = []
                     ally_members = game.ally_dfs(i, j)
                     for member in ally_members:
-                        liberty_list = []
                         neighbors = game.detect_neighbor(member[0], member[1])
                         for piece in neighbors:
                             # If there is empty space around a piece, it has liberty
-                            # I get + 2 points for each liberty I have
                             if board[piece[0]][piece[1]] == 0:
                                 if piece not in liberty_list:
                                     liberty_list.append(piece)
-                                    # count += 2
-                                count += 1
-                            # I get + 2 points if I place my stone near an opponents
+                                    count += 2
                             if board[piece[0]][piece[1]] == opponent:
-                                count += 1
+                                if piece not in opponents_as_neighbors:
+                                    opponents_as_neighbors.append(piece)
+                                    count += 3
+                    if not liberty_list:
+                        count += -10
+                    if len(liberty_list) == 1:
+                        count += -10
                 if board[i][j] == opponent:
-                    # count_opponent += 1
-                    opponent_neighbors = {}
+                    count += -2
                     ally_members = game.ally_dfs(i, j)
-                    surrounded = {}
                     for member in ally_members:
-                        neighbors = game.detect_neighbor(member[0], member[1])
                         opponent_liberty_list = []
-                        surrounded[member] = True
+                        neighbors = game.detect_neighbor(member[0], member[1])
                         for piece in neighbors:
-                            if board[piece[0]][piece[1]] == opponent or board[piece[0]][piece[1]] == 0:
-                                surrounded[member] = False
-                            #     # game.visualize_board()
+                            # If there is empty space around a piece, it has liberty
                             if board[piece[0]][piece[1]] == 0:
                                 if piece not in opponent_liberty_list:
                                     opponent_liberty_list.append(piece)
-                                    # count += -1
-                            if board[piece[0]][piece[1]] == piece_type:
-                                count += 4
-                        if surrounded[member]:
-                            count += 30
+                                    count += -2
+                    if not opponent_liberty_list:
+                        count += 20
+                    if len(opponent_liberty_list) == 1:
+                        count += 10
+
+
         if piece_type == 1:
             count = count - game.komi
         return count
@@ -144,7 +141,7 @@ class Minimax:
                     if board.valid_place_check(i, j, self.side, test_check=True):
                         candidates.append((i, j))
             # print("Max candidates = {}".format(candidates))
-            random.shuffle(candidates)
+            # random.shuffle(candidates)
             if not candidates:
                 action = "PASS"
                 v = max(v, min_value(board, alpha, beta, depth - 1))
@@ -170,7 +167,7 @@ class Minimax:
         def min_value(board, alpha, beta, depth):
             state = board.state_string()
             # if state in self.cache_min:
-                # return self.cache_min[state][0]
+            # return self.cache_min[state][0]
             if depth == 0 or board.game_end():
                 # board.visualize_board()
                 return self.total_score(board, self.side)
@@ -180,7 +177,7 @@ class Minimax:
                 for j in range(board.size):
                     if board.valid_place_check(i, j, self.opponent, test_check=True):
                         candidates.append((i, j))
-            random.shuffle(candidates)
+            # random.shuffle(candidates)
             if not candidates:
                 action = "PASS"
                 v = min(v, max_value(board, alpha, beta, depth - 1))
@@ -204,6 +201,7 @@ class Minimax:
                         return v
                     beta = min(beta, v)
             return v
+
         # self.load_dict_min()
         # self.load_dict_max()
         best_score = -np.inf
@@ -214,7 +212,7 @@ class Minimax:
             for j in range(board.size):
                 if board.valid_place_check(i, j, self.side, test_check=True):
                     candidates.append((i, j))
-        random.shuffle(candidates)
+        # random.shuffle(candidates)
         if not candidates:
             best_action = "PASS"
         else:
@@ -263,10 +261,11 @@ class Minimax:
                     count_white += 1
 
         if piece_type == 1:
-            diff = count_black-count_white
+            diff = count_black - count_white
         else:
-            diff = count_white-count_black
+            diff = count_white - count_black
         return diff
+
 
 if __name__ == "__main__":
     N = 5
