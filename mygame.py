@@ -259,12 +259,6 @@ class Game:
             for ally in neighbor_allies:
                 if ally not in stack and ally not in ally_members:
                     stack.append(ally)
-
-        if len(ally_members) > 3:
-            print(ally_members)
-            self.visualize_board()
-            print(ini)
-            exit()
         return ally_members
 
     def set_board(self, piece_type, previous_board, board):
