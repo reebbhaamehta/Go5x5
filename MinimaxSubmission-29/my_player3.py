@@ -34,36 +34,25 @@ class Minimax:
         """
         board = game.board
         count = 0
+        #  weights
+        self_weight = 2
+        opponent_weight = 2
+        center_weight = 2
+        liberty_weight = 100
+        opponent_liberty_weight = 200
+        self_edge_weight = 1
+        opponent_edge_weight = 2
+        chain_weight = 10
+        opponent_chain_weight = 10
+        total_liberty_weight = 3
+        total_opponent_liberty_weight = 7
 
         if piece_type == 1:
             count = count - game.komi
             opponent = 2
-            #  weights
-            self_weight = 2
-            opponent_weight = 2
-            center_weight = 2
-            liberty_weight = 100
-            opponent_liberty_weight = 200
-            self_edge_weight = 1
-            opponent_edge_weight = 2
-            chain_weight = 10
-            opponent_chain_weight = 10
-            total_liberty_weight = 3
-            total_opponent_liberty_weight = 5
+
         else:
             opponent = 1
-            #  weights
-            self_weight = 0
-            opponent_weight = 0
-            center_weight = 0
-            liberty_weight = 100
-            opponent_liberty_weight = 200
-            self_edge_weight = 10
-            opponent_edge_weight = 0
-            chain_weight = 0
-            opponent_chain_weight = 0
-            total_liberty_weight = 10
-            total_opponent_liberty_weight = 20
 
         if game.game_end():
             # game.visualize_board()
@@ -123,7 +112,6 @@ class Minimax:
         pass
 
     def get_input(self, board: Game, piece_type):
-        self.load_dict()
         if board.score(piece_type) <= 0:
             self.side = piece_type
             self.opponent = 1 if self.side == 2 else 2
@@ -148,7 +136,6 @@ class Minimax:
             print("Minimax: piece_type = {}".format(self.side), \
                   "current board value = {}".format(self.total_score(copy_board, self.side)))
 
-            self.save_dict()
             return action  # board.move(action[0], action[1], self.side)
 
     def alpha_beta_cutoff_search(self, board, depth=4):
@@ -253,14 +240,23 @@ class Minimax:
         # self.save_dict_min()
         return best_action
 
-    def save_dict(self):
-        pickle.dump(self.cache, open("cache.txt", "wb"))
+    def save_dict_max(self):
+        pickle.dump(self.cache_max, open("cache_max.txt", "wb"))
 
-    def load_dict(self):
+    def save_dict_min(self):
+        pickle.dump(self.cache_min, open("cache_min.txt", "wb"))
+
+    def load_dict_min(self):
         try:
-            self.cache = pickle.load(open("cache.txt", "rb"))
+            self.cache_min = pickle.load(open("cache_min.txt", "rb"))
         except EOFError:
-            self.cache = {}
+            self.cache_min = {}
+
+    def load_dict_max(self):
+        try:
+            self.cache_max = pickle.load(open("cache_max.txt", "rb"))
+        except EOFError:
+            self.cache_max = {}
 
     def alt_heuristic(self, board, piece_type):
         if piece_type == 1:
@@ -290,5 +286,7 @@ if __name__ == "__main__":
     go_game.set_board(game_piece_type, previous_board, current_board)
     player = Minimax()
     player.side = game_piece_type
+    print(game_piece_type)
+    # player.fight()
     next_action = player.get_input(go_game, game_piece_type)
     go_game.write_output(next_action)

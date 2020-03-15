@@ -86,7 +86,7 @@ def make_smarter(dict_number):
     qlearner.varyA_E = True
     if dict_number > 0:
         qlearner.load_dict(dict_number)
-    battle(qlearner, minimax_old, int(qlearner.LEARN_GAMES), False)
+    battle(qlearner, random_player, int(qlearner.LEARN_GAMES), False)
 
 
 def testMinimax():
@@ -101,7 +101,7 @@ def testMinimax():
     p1_stats = [0, 0, 0]
     p2_stats = [0, 0, 0]
     player1 = minimax
-    player2 = minimax_old
+    player2 = random_player
     for i in range(int(TEST_GAMES)):
         go = Game(GAME_SIZE)
         go.verbose = True

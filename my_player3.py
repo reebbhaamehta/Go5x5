@@ -75,7 +75,7 @@ def symmetrical_states(current_board):
 
 
 class Q_learning_agent:
-    LEARN_GAMES = 10 ** 7
+    LEARN_GAMES = 10 ** 6
     REDUCE_E_BY = 0.965
     REDUCE_A_BY = 0.955
 
