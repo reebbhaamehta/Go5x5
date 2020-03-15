@@ -11,6 +11,7 @@ from Minimax import Minimax
 import sys
 from my_player3 import GO_SIZE
 from Minimax_old import Minimax_old
+from Minimax_old2 import Minimax_old2
 
 X = 1
 O = 2
@@ -93,6 +94,7 @@ def testMinimax():
     random_player = RandomPlayer()
     minimax = Minimax()
     minimax_old = Minimax_old()
+    minimax_old2 = Minimax_old2()
     # qlearner.fight()
     # player1: Player instance.always X
     # player2: Player instance.always O
@@ -111,6 +113,10 @@ def testMinimax():
         go.verbose = True
         go.new_board()
         result = go.play(player2, player1, True)
+        if result == 1:
+            result = 2
+        elif result == 2:
+            result = 1
         p2_stats[result] += 1
 
     print(p1_stats, p2_stats)

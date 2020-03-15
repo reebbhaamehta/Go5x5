@@ -13,9 +13,10 @@ WIN_REWARD = 1.0
 DRAW_REWARD = 0.0
 LOSS_REWARD = -1.0
 GO_SIZE = 5
+DEPTH = 3
 
 
-class Minimax_old:
+class Minimax:
 
     def __init__(self, side=None):
         self.side = side
@@ -24,8 +25,6 @@ class Minimax_old:
         self.num_game = 0
         self.opponent = 1 if self.side == 2 else 2
         self.size = GO_SIZE
-        self.learn = False
-
 
     def total_score(self, game, piece_type):
         """
@@ -36,41 +35,66 @@ class Minimax_old:
         """
         board = game.board
         count = 0
+
+        if piece_type == 1:
+            count = count - game.komi
+        # print(game.n_move)
+        if game.game_end():
+            # game.visualize_board()
+            if game.judge_winner() == piece_type:
+                # print(1000)
+                return 1000  # game.score(piece_type) + count
+
         count_opponent = 0
+        liberties = 0
+        liberty_list = []
+        opponent_liberties = 0
+        opponent_liberty_list = []
+        opponents_as_neighbors = []
         if piece_type == 1:
             opponent = 2
         else:
             opponent = 1
+        if board[2][2] == piece_type:
+            count = count + 2
+
         for i in range(self.size):
             for j in range(self.size):
-                # if I place my piece in the center I get + 2 points
-                if board[2][2] == piece_type:
-                    count = count + 3
-                # if I place a piece on the edges I get - 2 points
-                if board[i][4] == piece_type or board[0][j] == piece_type:
-                    count = count - 2
-                # I get 1 point for each of my stones on the board
-                if board[i][j] == piece_type:
-                    count += 1
-                    ally_members = game.ally_dfs(i, j)
-                    for member in ally_members:
-                        neighbors = game.detect_neighbor(member[0], member[1])
-                        for piece in neighbors:
-                        # If there is empty space around a piece, it has liberty
-                            # I get + 2 points for each liberty I have
-                            if board[piece[0]][piece[1]] == 0:
-                                count += 2
-                            # I get + 2 points if I place my stone near an opponents
-                            if board[piece[0]][piece[1]] == opponent:
-                                count += 2
+                if i == 0 or i == 4 or j == 0 or j == 4:  # on the sides
+                    if board[i][j] == self.side:
+                        count += -1
+                # for every piece I have on the board I get two points
+                chain = []
+                if board[i][j] == self.side:
+                    count += 2
+                    chain = game.ally_dfs(i, j)
 
-        if piece_type == 1:
-            count = count - game.komi
-        #     self.opponent_score = self.score(2)
-        # else:
-        #     self.opponent_score = self.score(1)
-        # if self.opponent_score < self.prev_opponent_score:
-        #     count = count + 2
+                    neighbors = game.detect_neighbor(i, j)
+                    for piece in neighbors:
+                        # If there is empty space around a piece, it has liberty
+                        if board[piece[0]][piece[1]] == 0:
+                            if piece not in liberty_list:
+                                liberty_list.append(piece)
+                                count += 3
+                    if not liberty_list:
+                        count += -20
+                opponent_chain = []
+                if board[i][j] == opponent:
+                    count += -5
+                    opponent_chain = game.ally_dfs(i, j)
+                    neighbors = game.detect_neighbor(i, j)
+                    for piece in neighbors:
+                        # If there is empty space around a piece, it has liberty
+                        if board[piece[0]][piece[1]] == 0:
+                            if piece not in opponent_liberty_list:
+                                opponent_liberty_list.append(piece)
+                                count += -3
+                    if not opponent_liberty_list:
+                        count += 20
+                if not opponent_chain:
+                    count += 10
+                if not chain:
+                    count += -7
         return count
 
     def set_side(self, side):
@@ -86,20 +110,23 @@ class Minimax_old:
             self.opponent = 1 if self.side == 2 else 2
             if board.valid_place_check(2, 2, self.side, True):
                 copy_board = copy.deepcopy(board)
-                copy_board.place_chess(2, 2, self.side, True)
-                # print("Minimax_old: piece_type = {}".format(self.side), \
-                #       "current board value = {}".format(self.total_score(copy_board, self.side)))
+                copy_board.next_board(2, 2, self.side, True)
+                print("Minimax: piece_type = {}".format(self.side), \
+                      "current board value = {}".format(self.total_score(copy_board, self.side)))
                 return 2, 2
         if board.game_end():
             return
         else:
             # score, action = self._max(board)
-            action = self.alpha_beta_cutoff_search(board, 3)
+            # DEPTH = 3
+            # if board.n_move > 19:
+            #     DEPTH = 3
+            action = self.alpha_beta_cutoff_search(board, DEPTH)
+            copy_board = copy.deepcopy(board)
             if action != "PASS":
-                copy_board = copy.deepcopy(board)
-                copy_board.place_chess(action[0], action[1], self.side, True)
-            # print("Minimax_old: piece_type = {}".format(self.side), \
-                  # "current board value = {}".format(self.total_score(copy_board, self.side)))
+                copy_board.next_board(action[0], action[1], self.side, True)
+            print("Minimax: piece_type = {}".format(self.side), \
+                  "current board value = {}".format(self.total_score(copy_board, self.side)))
             return action  # board.move(action[0], action[1], self.side)
 
     def alpha_beta_cutoff_search(self, board, depth=4):
@@ -126,14 +153,10 @@ class Minimax_old:
             else:
                 for i, j in candidates:
                     copyBoard = copy.deepcopy(board)
-                    copyBoard.place_chess(i, j, self.side, False)
+                    copyBoard.next_board(i, j, self.side, False)
+                    copyBoard.n_move += 1
                     v = max(v, min_value(copyBoard, alpha, beta, depth - 1))
                     self.cache_max[state] = (v, (i, j))
-                    # print("-"*60)
-                    # print("Max candidates = {}".format((i, j, v)))
-                    # board.visualize_board()
-                    # copyBoard.visualize_board()
-                    # print("-"*60)
                     if v >= beta:
                         return v
                     alpha = max(alpha, v)
@@ -162,7 +185,8 @@ class Minimax_old:
             else:
                 for i, j in candidates:
                     copyBoard = copy.deepcopy(board)
-                    valid = copyBoard.place_chess(i, j, self.opponent, True)
+                    valid = copyBoard.next_board(i, j, self.opponent, True)
+                    copyBoard.n_move += 1
                     if not valid:
                         raise ValueError("in min invalid move")
                     v = min(v, max_value(copyBoard, alpha, beta, depth - 1))
@@ -193,7 +217,8 @@ class Minimax_old:
         else:
             for i, j in candidates:
                 copyBoard = copy.deepcopy(board)
-                copyBoard.place_chess(i, j, self.side, True)
+                copyBoard.next_board(i, j, self.side, True)
+                copyBoard.n_move += 1
                 v = min_value(copyBoard, best_score, beta, depth)
                 if v > best_score:
                     best_score = v
@@ -245,9 +270,11 @@ class Minimax_old:
 if __name__ == "__main__":
     N = 5
     go_game = Game(N)
-    game_piece_type, previous_board, board = go_game.read_input()
-    go_game.set_board(game_piece_type, previous_board, board)
-    player = Minimax_old()
+    game_piece_type, previous_board, current_board = go_game.read_input()
+    go_game.set_board(game_piece_type, previous_board, current_board)
+    player = Minimax()
     player.side = game_piece_type
+    print(game_piece_type)
+    # player.fight()
     next_action = player.get_input(go_game, game_piece_type)
     go_game.write_output(next_action)
