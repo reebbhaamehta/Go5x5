@@ -13,7 +13,7 @@ WIN_REWARD = 1.0
 DRAW_REWARD = 0.0
 LOSS_REWARD = -1.0
 GO_SIZE = 5
-DEPTH = 3
+DEPTH = 2
 
 
 class Minimax:
@@ -24,6 +24,7 @@ class Minimax:
         self.num_game = 0
         self.opponent = 1 if self.side == 2 else 2
         self.size = GO_SIZE
+        self.learn = False
 
     def total_score(self, game, piece_type):
         """
