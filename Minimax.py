@@ -13,7 +13,7 @@ WIN_REWARD = 1.0
 DRAW_REWARD = 0.0
 LOSS_REWARD = -1.0
 GO_SIZE = 5
-DEPTH = 2
+DEPTH = 1
 
 
 class Minimax:
@@ -130,6 +130,8 @@ class Minimax:
         if board.score(piece_type) <= 0:
             self.side = piece_type
             self.opponent = 1 if self.side == 2 else 2
+            self.cache = {}
+            open("cache.txt", "w").close()
             if board.valid_place_check(2, 2, self.side, True):
                 copy_board = copy.deepcopy(board)
                 copy_board.next_board(2, 2, self.side, True)
