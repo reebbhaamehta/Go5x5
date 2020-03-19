@@ -13,7 +13,7 @@ WIN_REWARD = 1.0
 DRAW_REWARD = 0.0
 LOSS_REWARD = -1.0
 GO_SIZE = 5
-
+DEPTH = 1
 
 class Minimax_old:
 
@@ -94,7 +94,7 @@ class Minimax_old:
             return
         else:
             # score, action = self._max(board)
-            action = self.alpha_beta_cutoff_search(board, 3)
+            action = self.alpha_beta_cutoff_search(board, DEPTH)
             if action != "PASS":
                 copy_board = copy.deepcopy(board)
                 copy_board.place_chess(action[0], action[1], self.side, True)
