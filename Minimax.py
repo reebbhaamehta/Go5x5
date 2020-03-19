@@ -125,15 +125,15 @@ class Minimax:
 
     def get_input(self, board: Game, piece_type):
         self.load_dict()
-        print(board.n_move)
+        # print(board.n_move)
         if board.score(piece_type) <= 0:
             self.side = piece_type
             self.opponent = 1 if self.side == 2 else 2
             if board.valid_place_check(2, 2, self.side, True):
                 copy_board = copy.deepcopy(board)
                 copy_board.next_board(2, 2, self.side, True)
-                print("Minimax: piece_type = {}".format(self.side), \
-                      "current board value = {}".format(self.total_score(copy_board, self.side)))
+                # print("Minimax: piece_type = {}".format(self.side), \
+                #       "current board value = {}".format(self.total_score(copy_board, self.side)))
                 return 2, 2
         if board.game_end():
             return
@@ -145,10 +145,10 @@ class Minimax:
             action = self.alpha_beta_cutoff_search(board, DEPTH)
             copy_board = copy.deepcopy(board)
             if action != "PASS":
-                print(action)
+                # print(action)
                 copy_board.next_board(action[0], action[1], self.side, True)
-            print("Minimax: piece_type = {}".format(self.side), \
-                  "current board value = {}".format(self.total_score(copy_board, self.side)))
+            # print("Minimax: piece_type = {}".format(self.side), \
+            #       "current board value = {}".format(self.total_score(copy_board, self.side)))
 
             self.save_dict()
             return action  # board.move(action[0], action[1], self.side)
@@ -250,8 +250,8 @@ class Minimax:
                 copyBoard.n_move += 1
                 v = min_value(copyBoard, best_score, beta, depth)
                 if v > best_score:
-                    print(best_action)
-                    print(best_score)
+                    # print(best_action)
+                    # print(best_score)
                     best_score = v
                     best_action = (i, j)
                     # print(best_action, best_score)

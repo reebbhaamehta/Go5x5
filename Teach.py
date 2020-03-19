@@ -80,13 +80,13 @@ def play_learn_track(go, game_number, player1, player2, p1_stats, p2_stats, batc
 def make_smarter(dict_number):
     qlearner = Q_learning_agent()
     random_player = RandomPlayer()
-    minimax_old = Minimax_old()
+    minimax = Minimax()
     qlearner.alpha = 0.5
     qlearner.epsilon = 0.3
     qlearner.varyA_E = True
     if dict_number > 0:
         qlearner.load_dict(dict_number)
-    battle(qlearner, random_player, int(qlearner.LEARN_GAMES), False)
+    battle(qlearner, minimax, int(qlearner.LEARN_GAMES), False)
 
 
 def testMinimax():
@@ -207,14 +207,14 @@ def track_intelligence(pl_num, stats, batch, file, epsilon, alpha):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--run", type=int, help="minimax = 1 or qlearner = 0", default=1)
-    parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=-1)
+    parser.add_argument("--run", type=int, help="minimax = 1 or qlearner = 0", default=0)
+    parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=0)
     args = parser.parse_args()
     if args.run == 1:
         testMinimax()
     else:
-        # make_smarter(args.num)
-        testQlearner(args.num)
+        make_smarter(args.num)
+        # testQlearner(args.num)
 # TODO: implement my own functions and classes to account for
 #  reading current / previous state and writing output files,
 #  to check if the move I am about to make is valid and all

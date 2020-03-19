@@ -217,7 +217,7 @@ class Q_learning_agent:
         self.states_to_update.append((base_state, action_base))
         return action
 
-    def get_input_dict(self, go, piece_type):
+    def get_input(self, go, piece_type):
         if self.identity != piece_type and go.score(piece_type) <= 0:
             self.identity = piece_type
             self.opponent = 1 if piece_type == 2 else 2
@@ -227,7 +227,7 @@ class Q_learning_agent:
         # self.states_to_update.append((go.state_string(), action))
         return action  # returns new state action pair or PASS
 
-    def get_input(self, go, piece_type):
+    def get_input_policy(self, go, piece_type):
         # if self.identity != piece_type and go.score(piece_type) <= 0:
         #     self.identity = piece_type
         if go.game_end():
