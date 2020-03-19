@@ -81,7 +81,7 @@ def make_smarter(dict_number):
     qlearner = Q_learning_agent()
     random_player = RandomPlayer()
     minimax = Minimax()
-    minimax_old = Minimax_old
+    minimax_old = Minimax_old()
     qlearner.alpha = 0.5
     qlearner.epsilon = 0.3
     qlearner.varyA_E = True
