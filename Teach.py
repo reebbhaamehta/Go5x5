@@ -147,15 +147,19 @@ def testMinimax():
 def testQlearner(dict_num):
     qlearner = Q_learning_agent()
     random_player = RandomPlayer()
+    minimax = Minimax_old2()
+    qlearner_server = Q_learning_agent()
     qlearner.fight(dict_num)
-    if dict_num > 0:
-        qlearner.load_dict(dict_num)
+    dict_num = 10
+    qlearner_server.fight(dict_num)
+    # if dict_num > 0:
+    #     qlearner.load_dict(dict_num)
     # player1: Player instance.always X
     # player2: Player instance.always O
     p1_stats = [0, 0, 0]
     p2_stats = [0, 0, 0]
-    player1 = qlearner
-    player2 = random_player
+    player1 = minimax
+    player2 = qlearner_server
     for i in range(int(TEST_GAMES)):
         go = Game(GAME_SIZE)
         go.verbose = False
@@ -195,7 +199,6 @@ def testQlearner(dict_num):
 
 # arbitrarily
 def track_intelligence(pl_num, stats, batch, file, epsilon, alpha):
-    # stats = [0, 0, 0] piece type of winner of the game (0 if it's a tie)
     stats = [round(x / batch * 100.0, 1) for x in stats]
     with open(file, 'a') as f:
         f.write(str(pl_num) + "," + ",".join([str(e) for e in stats]) + ',' + str(epsilon) +','+ str(alpha))
@@ -210,8 +213,8 @@ if __name__ == "__main__":
     if args.run == 1:
         testMinimax()
     else:
-        make_smarter(args.num)
-        # testQlearner(args.num)
+        # make_smarter(args.num)
+        testQlearner(args.num)
 # TODO: implement my own functions and classes to account for
 #  reading current / previous state and writing output files,
 #  to check if the move I am about to make is valid and all

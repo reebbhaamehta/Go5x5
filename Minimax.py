@@ -34,36 +34,37 @@ class Minimax:
         """
         board = game.board
         count = 0
+        #  weights
+        self_weight = 1
+        opponent_weight = 1
+        center_weight = 1
+        liberty_weight = 500
+        opponent_liberty_weight = 500
+        self_edge_weight = 7
+        opponent_edge_weight = 7
+        chain_weight = 5
+        opponent_chain_weight = 5
+        total_liberty_weight = 5
+        total_opponent_liberty_weight = 5
 
         if piece_type == 1:
             count = count - game.komi
             opponent = 2
-            #  weights
-            self_weight = 2
-            opponent_weight = 2
-            center_weight = 2
-            liberty_weight = 100
-            opponent_liberty_weight = 200
-            self_edge_weight = 1
-            opponent_edge_weight = 2
-            chain_weight = 10
-            opponent_chain_weight = 10
-            total_liberty_weight = 3
-            total_opponent_liberty_weight = 5
+
         else:
             opponent = 1
             #  weights
-            self_weight = 0
-            opponent_weight = 0
-            center_weight = 0
-            liberty_weight = 100
-            opponent_liberty_weight = 200
-            self_edge_weight = 10
-            opponent_edge_weight = 0
-            chain_weight = 0
-            opponent_chain_weight = 0
-            total_liberty_weight = 10
-            total_opponent_liberty_weight = 20
+            # self_weight = 0
+            # opponent_weight = 0
+            # center_weight = 0
+            # liberty_weight = 100
+            # opponent_liberty_weight = 200
+            # self_edge_weight = 10
+            # opponent_edge_weight = 0
+            # chain_weight = 0
+            # opponent_chain_weight = 0
+            # total_liberty_weight = 10
+            # total_opponent_liberty_weight = 20
 
         if game.game_end():
             # game.visualize_board()
@@ -124,6 +125,7 @@ class Minimax:
 
     def get_input(self, board: Game, piece_type):
         self.load_dict()
+        print(board.n_move)
         if board.score(piece_type) <= 0:
             self.side = piece_type
             self.opponent = 1 if self.side == 2 else 2
@@ -179,7 +181,8 @@ class Minimax:
                     copyBoard.next_board(i, j, self.side, False)
                     copyBoard.n_move += 1
                     v = max(v, min_value(copyBoard, alpha, beta, depth - 1))
-                    self.cache[state] = v
+                    if v is not None:
+                        self.cache[state] = v
                     if v >= beta:
                         return v
                     alpha = max(alpha, v)
@@ -215,7 +218,8 @@ class Minimax:
                     if not valid:
                         raise ValueError("in min invalid move")
                     v = min(v, max_value(copyBoard, alpha, beta, depth - 1))
-                    self.cache[state] = v
+                    if v is not None:
+                        self.cache[state] = v
                     # print("-"*60)
                     # print("Min candidates = {}".format((i, j, v)))
                     # board.visualize_board()
@@ -246,6 +250,8 @@ class Minimax:
                 copyBoard.n_move += 1
                 v = min_value(copyBoard, best_score, beta, depth)
                 if v > best_score:
+                    print(best_action)
+                    print(best_score)
                     best_score = v
                     best_action = (i, j)
                     # print(best_action, best_score)
@@ -286,9 +292,14 @@ class Minimax:
 if __name__ == "__main__":
     N = 5
     go_game = Game(N)
-    game_piece_type, previous_board, current_board = go_game.read_input()
+    game_piece_type, previous_board, current_board, go_game.n_move = go_game.read_input()
     go_game.set_board(game_piece_type, previous_board, current_board)
     player = Minimax()
+    if go_game.new_game:
+        player.cache = {}
+        open("cache.txt", "w").close()
     player.side = game_piece_type
     next_action = player.get_input(go_game, game_piece_type)
+    go_game.n_move += 2
+
     go_game.write_output(next_action)

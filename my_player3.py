@@ -105,8 +105,8 @@ class Q_learning_agent:
         self.varyA_E = False
         self.epsilon = 0
         self.alpha = 0
-        # self.load_policy(dict_num)
-        self.load_dict(dict_num)
+        self.load_policy(dict_num)
+        # self.load_dict(dict_num)
 
 
     def save_policy(self, num_games):
@@ -200,7 +200,7 @@ class Q_learning_agent:
                     action_in_base = orient_action_to_base(actual_orientation_action, orientation)
                     valid_places.append(action_in_base)
                 else:
-                    action_q_vals[actions] = INVALID_MOVE
+                    action_q_vals[actual_orientation_action] = INVALID_MOVE
         # print(valid_places)
         if not valid_places:
             action = "PASS"
@@ -217,7 +217,7 @@ class Q_learning_agent:
         self.states_to_update.append((base_state, action_base))
         return action
 
-    def get_input(self, go, piece_type):
+    def get_input_dict(self, go, piece_type):
         if self.identity != piece_type and go.score(piece_type) <= 0:
             self.identity = piece_type
             self.opponent = 1 if piece_type == 2 else 2
@@ -227,22 +227,32 @@ class Q_learning_agent:
         # self.states_to_update.append((go.state_string(), action))
         return action  # returns new state action pair or PASS
 
-    def get_input_policy(self, go, piece_type):
+    def get_input(self, go, piece_type):
         # if self.identity != piece_type and go.score(piece_type) <= 0:
         #     self.identity = piece_type
         if go.game_end():
             return
         state = go.state_string()
-        if state in self.policy:
-            action = self.policy[state]
+        if piece_type == 1:
+            if state in self.policy_X:
+                action = self.policy_X[state]
+            else:
+                while True:
+                    action = random.choice(list(self.policy_X.values()))
+                    if action != "PASS":
+                        if go.valid_place_check(action[0], action[1], piece_type, test_check=True):
+                            return action
         else:
-            while True:
-                action = random.choice(list(self.policy.values()))
-                if action != "PASS":
-                    if go.valid_place_check(action[0], action[1], piece_type, test_check=True):
-                        return action
+            if state in self.policy_O:
+                action = self.policy_O[state]
+            else:
+                while True:
+                    action = random.choice(list(self.policy_O.values()))
+                    if action != "PASS":
+                        if go.valid_place_check(action[0], action[1], piece_type, test_check=True):
+                            return action
         # action = self.max_qvalue(go, piece_type)
-        self.states_to_update.append((go.state_string(), action))
+        # self.states_to_update.append((go.state_string(), action))
         return action  # returns new state action pair or PASS
 
     def update_epsilon(self):

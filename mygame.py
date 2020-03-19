@@ -21,6 +21,7 @@ class Game:
         self.opponent_score = 0
         self.opponent_prev_liberties = 0
         self.opponent_liberties = 0
+        self.new_game = False
 
     def next_board(self, i, j, piece_type, test_check=True):
         # saves the board after pacing the stone and removing died pieces.
@@ -393,12 +394,12 @@ class Game:
                 if not self.place_chess(action[0], action[1], piece_type, True):
 
                     if piece_type == 1:
-                        print("-"*60)
+                        print("-" * 60)
                         print("X turn: player1")
                         print(self.previous_board)
                         print(action)
                         print(self.board)
-                        print("-"*60)
+                        print("-" * 60)
                         exit()
                     elif piece_type == 2:
                         print("O turn: player2")
@@ -421,8 +422,8 @@ class Game:
             self.n_move += 1
             self.X_move = not self.X_move  # Players take turn
 
-
     def read_input(self):
+
         with open("input.txt", 'r') as f:
             lines = f.readlines()
             self.piece_type = int(lines[0])  # piece type being assigned to self is probably incorrect. Review.
@@ -443,10 +444,23 @@ class Game:
             #     for letter in line:
             #         self.board[index].append(int(letter))
             #     index +=1
-            return self.piece_type, self.previous_board, self.board
+
+        with open("helper.txt", "r") as f:
+            test = f.readline().strip()
+            self.n_move = int(test)
+
+        if not numpy.any(self.board) and self.piece_type == 1:
+            self.new_game = True
+            self.n_move = 0
+        elif numpy.sum(self.board) < 2 and self.piece_type == 2:
+            self.new_game = True
+            self.n_move = 1
+
+        return self.piece_type, self.previous_board, self.board, self.n_move
 
     def write_output(self, result):
-        res = self.piece_type
+        with open("helper.txt", "w") as f:
+            f.write(str(self.n_move))
         with open("output.txt", 'w') as f:
             if result == "PASS":
                 f.write(result)
