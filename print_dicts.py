@@ -30,7 +30,7 @@ def stringify_keys(d):
 
 if __name__ == "__main__":
     # if self.identity == 1:
-    num_games = 4
+    num_games = 0
     state_q_X = pickle.load(open("qvalues_X_{}.pkl".format(num_games), "rb"))
     state_q_O = pickle.load(open("qvalues_O_{}.pkl".format(num_games), "rb"))
 
@@ -44,14 +44,14 @@ if __name__ == "__main__":
     with open("O_dict.json", "w") as file:
         file.write(json.dumps(state_q_O, sort_keys=True, indent=4))
 
-    policy_X = pickle.load(open("policy_learned_X_{}.pkl".format(num_games), "rb"))
-    policy_O = pickle.load(open("policy_learned_O_{}.pkl".format(num_games), "rb"))
-
-    policy_O = stringify_keys(policy_O)
-    policy_X = stringify_keys(policy_X)
-    print(len(policy_O))
-    print(len(policy_X))
-    with open("X_policy.json", "w") as file:
-        file.write(json.dumps(policy_X, sort_keys=True, indent=4))
-    with open("O_policy.json", "w") as file:
-        file.write(json.dumps(policy_O, sort_keys=True, indent=4))
+    # policy_X = pickle.load(open("policy_learned_X_{}.pkl".format(num_games), "rb"))
+    # policy_O = pickle.load(open("policy_learned_O_{}.pkl".format(num_games), "rb"))
+    #
+    # policy_O = stringify_keys(policy_O)
+    # policy_X = stringify_keys(policy_X)
+    # print(len(policy_O))
+    # print(len(policy_X))
+    # with open("X_policy.json", "w") as file:
+    #     file.write(json.dumps(policy_X, sort_keys=True, indent=4))
+    # with open("O_policy.json", "w") as file:
+    #     file.write(json.dumps(policy_O, sort_keys=True, indent=4))

@@ -209,7 +209,7 @@ def track_intelligence(pl_num, stats, batch, file, epsilon, alpha):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--run", type=int, help="minimax = 1 or qlearner = 0", default=0)
-    parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=0)
+    parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=-1)
     args = parser.parse_args()
     if args.run == 1:
         testMinimax()

@@ -1,4 +1,5 @@
 # 7042208305 :Reebbhaa Mehta
+import copy
 import math
 import pickle
 import random
@@ -39,12 +40,14 @@ def state_to_string(state):
 
 
 def orient_action(action, orientation):
-    # rotate left
-    for i in range(orientation[0]):
-        action = (GO_SIZE - 1 - action[1], action[0])
     # flip with x axis static
     if orientation[1] == 0:
         action = (GO_SIZE - 1 - action[0], action[1])
+
+    # rotate left
+    for i in range(orientation[0]):
+        action = (GO_SIZE - 1 - action[1], action[0])
+
     return action
 
 
@@ -58,6 +61,15 @@ def orient_action_to_base(action, orientation):
     return action
 
 
+def invert_orientation(orientation):
+    inverted_orientation = list(copy.deepcopy(orientation))
+    if orientation[0] == 1:
+        inverted_orientation[0] = 3
+    elif orientation[0] == 3:
+        inverted_orientation[0] = 1
+    return tuple(inverted_orientation)
+
+
 def symmetrical_states(current_board):
     # print(type(current_board))
     # exit()
@@ -68,7 +80,7 @@ def symmetrical_states(current_board):
         state_list.append((numpy.rot90(state_list[i][0]), (i+1, -1)))
     for i in range(4):
         rotations = state_list[i][1][0]
-        orientation = (rotations, 1)
+        orientation = (rotations, 0)
         state_list.append((numpy.flip(state_list[i][0], 0), orientation))
     # state = game.state_string()
     return state_list
@@ -146,6 +158,10 @@ class Q_learning_agent:
         symmetries = symmetrical_states(state_np)
         initial_state = state_to_string(symmetries[0][0])
         symm_index = [state_to_string(s[0]) in self.state_q_O for s in symmetries]
+        # if state == "0 0 0 0 0 0 0 0 0 0 0 0 1 0 2 0 1 1 0 0 0 2 0 0 0":
+            # print(initial_state)
+            # print(symm_index)
+            # print(symmetries)
         if not any(symm_index):
             # actions_q_values = {}
             self.state_q_O[initial_state] = {}
@@ -159,8 +175,9 @@ class Q_learning_agent:
             return self.state_q_O[initial_state], orientation, initial_state
         else:
             orientation = symmetries[symm_index.index(True)][1]
+            inverted_orientation = invert_orientation(orientation)
             base_state = state_to_string(symmetries[symm_index.index(True)][0])
-            return self.state_q_O[base_state], orientation, base_state
+            return self.state_q_O[base_state], inverted_orientation, base_state
 
     def state_q_values_X(self, state):
         state_np = string_to_state(state)
@@ -180,8 +197,9 @@ class Q_learning_agent:
             return self.state_q_X[initial_state], orientation, initial_state
         else:
             orientation = symmetries[symm_index.index(True)][1]
+            inverted_orientation = invert_orientation(orientation)
             base_state = state_to_string(symmetries[symm_index.index(True)][0])
-            return self.state_q_X[base_state], orientation, base_state
+            return self.state_q_X[base_state], inverted_orientation, base_state
 
     def max_qvalue(self, go, piece_type):
         # state_base_orientation, orientation = symmetrical_states(go.board)
@@ -193,14 +211,14 @@ class Q_learning_agent:
             action_q_vals, orientation, base_state = self.state_q_values_O(state)
         curr_max = -math.inf
         valid_places = []
+        # print(orientation)
         for actions in action_q_vals:
             if actions != "PASS":
                 actual_orientation_action = orient_action(actions, orientation)
                 if go.valid_place_check(actual_orientation_action[0], actual_orientation_action[1], piece_type, test_check=True):
-                    action_in_base = orient_action_to_base(actual_orientation_action, orientation)
-                    valid_places.append(action_in_base)
+                    valid_places.append(actions)
                 else:
-                    action_q_vals[actual_orientation_action] = INVALID_MOVE
+                    action_q_vals[actions] = INVALID_MOVE
         # print(valid_places)
         if not valid_places:
             action = "PASS"
