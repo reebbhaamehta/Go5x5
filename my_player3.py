@@ -5,6 +5,7 @@ import pickle
 import random
 from mygame import Game
 import numpy
+from Minimax import Minimax
 
 GO_SIZE = 5
 WIN = 1
@@ -153,48 +154,48 @@ class Q_learning_agent:
         # else:
         pickle.dump(self.state_q_O, open("qvalues_O_{}.pkl".format(num_games), "wb"))
 
-    def state_q_values_O(self, state):
+    def state_q_values_O(self, go, state):
         state_np = string_to_state(state)
         symmetries = symmetrical_states(state_np)
         initial_state = state_to_string(symmetries[0][0])
         symm_index = [state_to_string(s[0]) in self.state_q_O for s in symmetries]
-        # if state == "0 0 0 0 0 0 0 0 0 0 0 0 1 0 2 0 1 1 0 0 0 2 0 0 0":
-            # print(initial_state)
-            # print(symm_index)
-            # print(symmetries)
         if not any(symm_index):
-            # actions_q_values = {}
-            self.state_q_O[initial_state] = {}
-            for i in range(GO_SIZE):
-                for j in range(GO_SIZE):
-                    possible_action = (i, j)
-                    self.state_q_O[initial_state][possible_action] = 0.7 # random.random()
-            self.state_q_O[initial_state]["PASS"] = 0.2  # random.random()
-            # self.state_q[initial_state] = actions_q_values
-            orientation = (0, -1)
-            return self.state_q_O[initial_state], orientation, initial_state
+            if self.learn:
+                self.state_q_O[initial_state] = {}
+                for i in range(GO_SIZE):
+                    for j in range(GO_SIZE):
+                        possible_action = (i, j)
+                        self.state_q_O[initial_state][possible_action] = 0.7 # random.random()
+                self.state_q_O[initial_state]["PASS"] = 0.2  # random.random()
+                # self.state_q[initial_state] = actions_q_values
+                orientation = (0, -1)
+                return self.state_q_O[initial_state], orientation, initial_state
+            else:
+                return None, None, None
         else:
             orientation = symmetries[symm_index.index(True)][1]
             inverted_orientation = invert_orientation(orientation)
             base_state = state_to_string(symmetries[symm_index.index(True)][0])
             return self.state_q_O[base_state], inverted_orientation, base_state
 
-    def state_q_values_X(self, state):
+    def state_q_values_X(self, go, state):
         state_np = string_to_state(state)
         symmetries = symmetrical_states(state_np)
         initial_state = state_to_string(symmetries[0][0])
         symm_index = [state_to_string(s[0]) in self.state_q_X for s in symmetries]
         if not any(symm_index):
-            # actions_q_values = {}
-            self.state_q_X[initial_state] = {}
-            for i in range(GO_SIZE):
-                for j in range(GO_SIZE):
-                    possible_action = (i, j)
-                    self.state_q_X[initial_state][possible_action] = 0.5  # random.random()
-            self.state_q_X[initial_state]["PASS"] = 0.3  # random.random()
-            # self.state_q[initial_state] = actions_q_values
-            orientation = (0, -1)
-            return self.state_q_X[initial_state], orientation, initial_state
+            if self.learn:
+                self.state_q_X[initial_state] = {}
+                for i in range(GO_SIZE):
+                    for j in range(GO_SIZE):
+                        possible_action = (i, j)
+                        self.state_q_X[initial_state][possible_action] = 0.5  # random.random()
+                self.state_q_X[initial_state]["PASS"] = 0.3  # random.random()
+                # self.state_q[initial_state] = actions_q_values
+                orientation = (0, -1)
+                return self.state_q_X[initial_state], orientation, initial_state
+            else:
+                return None, None, None
         else:
             orientation = symmetries[symm_index.index(True)][1]
             inverted_orientation = invert_orientation(orientation)
@@ -206,9 +207,13 @@ class Q_learning_agent:
         # print(states_orientation)
         state = state_to_string(go.board)
         if self.identity == 1:
-            action_q_vals, orientation, base_state = self.state_q_values_X(state)
+            action_q_vals, orientation, base_state = self.state_q_values_X(go, state)
         else:
-            action_q_vals, orientation, base_state = self.state_q_values_O(state)
+            action_q_vals, orientation, base_state = self.state_q_values_O(go, state)
+        if action_q_vals is None:
+            minimax = Minimax()
+            minimax.side = self.identity
+            return minimax.get_input(go, self.identity)
         curr_max = -math.inf
         valid_places = []
         # print(orientation)
@@ -298,9 +303,9 @@ class Q_learning_agent:
         self.states_to_update.reverse()
         for state, move in self.states_to_update:
             if self.identity == 1:
-                base_state_action_q, orientation, base_state = self.state_q_values_X(state)
+                base_state_action_q, orientation, base_state = self.state_q_values_X(go, state)
             else:
-                base_state_action_q, orientation, base_state = self.state_q_values_O(state)
+                base_state_action_q, orientation, base_state = self.state_q_values_O(go, state)
             # TODO: what if you are propagating a loss?? Will you enter this also when not the reward?
             # Try using first_iteration instead as condition to enter this first if.
             # if max_q_value < 0:

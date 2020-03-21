@@ -13,7 +13,7 @@ WIN_REWARD = 1.0
 DRAW_REWARD = 0.0
 LOSS_REWARD = -1.0
 GO_SIZE = 5
-DEPTH = 1
+DEPTH = 3
 
 
 class Minimax:
@@ -269,6 +269,8 @@ class Minimax:
         try:
             self.cache = pickle.load(open("cache.txt", "rb"))
         except EOFError:
+            self.cache = {}
+        except FileNotFoundError:
             self.cache = {}
 
     def alt_heuristic(self, board, piece_type):
