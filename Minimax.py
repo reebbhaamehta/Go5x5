@@ -143,7 +143,7 @@ class Minimax:
         else:
             # score, action = self._max(board)
             DEPTH = 3
-            if board.n_move > 16:
+            if board.n_move > 18:
                 DEPTH = 24 - board.n_move
             action = self.alpha_beta_cutoff_search(board, DEPTH)
             copy_board = copy.deepcopy(board)
