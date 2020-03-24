@@ -125,7 +125,7 @@ class Minimax:
     def get_input(self, go: Game, piece_type):
         self.load_dict()
         # print(board.n_move)
-        go.visualize_board()
+        # go.visualize_board()
         if go.score(piece_type) <= 0:
             self.side = piece_type
             self.opponent = 1 if self.side == 2 else 2
