@@ -357,9 +357,9 @@ class Q_learning_agent:
         self.states_to_update_opponent.reverse()
         for state, move in self.states_to_update_opponent:
             if self.opponent == 1:
-                base_state_action_q, orientation, base_state = self.state_q_values_X(state)
+                base_state_action_q, orientation, base_state = self.state_q_values_X(go, state)
             else:
-                base_state_action_q, orientation, base_state = self.state_q_values_O(state)
+                base_state_action_q, orientation, base_state = self.state_q_values_O(go, state)
             if first_iteration:
                 base_state_action_q[move] = reward
                 first_iteration = False
