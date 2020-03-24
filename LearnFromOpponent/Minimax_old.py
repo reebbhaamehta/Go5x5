@@ -7,7 +7,7 @@ import random
 
 import numpy as np
 
-from mygame import Game
+from gamelearnopponent import Game
 
 WIN_REWARD = 1.0
 DRAW_REWARD = 0.0

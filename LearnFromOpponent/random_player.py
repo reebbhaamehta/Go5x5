@@ -1,5 +1,5 @@
 import random
-from read import readInput
+from startercode.read import readInput
 from startercode.write import writeOutput
 
 from startercode.host import GO
