@@ -335,9 +335,9 @@ class Q_learning_agent:
         # check result to set the reward
         for state, move in self.opponent_actions:
             if self.opponent == 1:
-                base_state_action_q, orientation, base_state = self.state_q_values_X(state)
+                base_state_action_q, orientation, base_state = self.state_q_values_X(go, state)
             else:
-                base_state_action_q, orientation, base_state = self.state_q_values_O(state)
+                base_state_action_q, orientation, base_state = self.state_q_values_O(go, state)
             base_action = orient_action_to_base(move, orientation)
             self.states_to_update_opponent.append((base_state, base_action))
 
