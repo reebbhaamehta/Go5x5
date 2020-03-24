@@ -69,13 +69,14 @@ def play_learn_track(go, game_number, player1, player2, p1_stats, p2_stats, batc
 def make_smarter(dict_number):
     qlearner = Q_learning_agent()
     random_player = RandomPlayer()
+    minimax = Minimax()
     minimax_old = Minimax_old()
     qlearner.alpha = 0.7
     qlearner.epsilon = 0.1
     qlearner.varyA_E = False
     if dict_number > -1:
         qlearner.load_dict(dict_number)
-    battle(qlearner, random_player, int(qlearner.LEARN_GAMES), False)
+    battle(qlearner, minimax_old, int(qlearner.LEARN_GAMES), False)
 
 
 def testMinimax():
@@ -110,7 +111,7 @@ def testMinimax():
 
     print(p1_stats, p2_stats)
     p1_stats = [round(x / TEST_GAMES * 100.0, 1) for x in p1_stats]
-    sys.stdout = open("../Minimax_resutls.txt", "a")
+    sys.stdout = open("Minimax_resutls.txt", "a")
     if True:
         print('_' * 60)
         print('{:>15}(X) | Wins:{}% Draws:{}% Losses:{}%'.format(player1.__class__.__name__, p1_stats[1], p1_stats[0],
@@ -138,8 +139,7 @@ def testQlearner(dict_num):
     random_player = RandomPlayer()
     minimax = Minimax_old2()
     qlearner_server = Q_learning_agent()
-    if dict_num > 0:
-        qlearner.fight(dict_num)
+    qlearner.fight(dict_num)
     dict_num = 10
     qlearner_server.fight(dict_num)
     # if dict_num > 0:
