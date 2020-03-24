@@ -1,9 +1,13 @@
 import copy
-from LearnFromOpponent.learnfromopponent import state_to_string
+
 import numpy
 
 
-# TODO:Rewrite entire class
+def state_to_string(state):
+    state_string = str(state.ravel())[1:-1].strip()
+    return state_string
+
+
 class Game:
 
     def __init__(self, size):
@@ -429,7 +433,7 @@ class Game:
 
     def read_input(self):
 
-        with open("../input.txt", 'r') as f:
+        with open("input.txt", 'r') as f:
             lines = f.readlines()
             self.piece_type = int(lines[0])  # piece type being assigned to self is probably incorrect. Review.
             self.previous_board = [[int(letter) for letter in line.rstrip("\n")] for line in lines[1:self.size + 1]]
@@ -450,7 +454,7 @@ class Game:
             #         self.board[index].append(int(letter))
             #     index +=1
 
-        with open("../helper.txt", "r") as f:
+        with open("helper.txt", "r") as f:
             test = f.readline().strip()
             self.n_move = int(test)
 
@@ -464,9 +468,9 @@ class Game:
         return self.piece_type, self.previous_board, self.board, self.n_move
 
     def write_output(self, result):
-        with open("../helper.txt", "w") as f:
+        with open("helper.txt", "w") as f:
             f.write(str(self.n_move))
-        with open("../output.txt", 'w') as f:
+        with open("output.txt", 'w') as f:
             if result == "PASS":
                 f.write(result)
             else:

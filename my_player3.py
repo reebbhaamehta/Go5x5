@@ -121,7 +121,6 @@ class Q_learning_agent:
         self.load_policy(dict_num)
         # self.load_dict(dict_num)
 
-
     def save_policy(self, num_games):
         for states in self.state_q_X:
             max_q = -math.inf
@@ -135,24 +134,24 @@ class Q_learning_agent:
                 if self.state_q_O[states][action] > max_q:
                     max_q = self.state_q_O[states][action]
                     self.policy_O[states] = action
-        pickle.dump(self.policy_X, open("policy_learned_X_{}.pkl".format(num_games), "wb"))
-        pickle.dump(self.policy_O, open("policy_learned_O_{}.pkl".format(num_games), "wb"))
+        pickle.dump(self.policy_X, open("policy_learned_X_{}.txt".format(num_games), "wb"))
+        pickle.dump(self.policy_O, open("policy_learned_O_{}.txt".format(num_games), "wb"))
 
     def load_policy(self, num_games=0):
-        self.policy_X = pickle.load(open("policy_learned_X_{}.pkl".format(num_games), "rb"))
-        self.policy_O = pickle.load(open("policy_learned_O_{}.pkl".format(num_games), "rb"))
+        self.policy_X = pickle.load(open("policy_learned_X_{}.txt".format(num_games), "rb"))
+        self.policy_O = pickle.load(open("policy_learned_O_{}.txt".format(num_games), "rb"))
 
     def load_dict(self, num_games):
         # if self.identity == 1:
-        self.state_q_X = pickle.load(open("qvalues_X_{}.pkl".format(num_games), "rb"))
+        self.state_q_X = pickle.load(open("qvalues_X_{}.txt".format(num_games), "rb"))
         # else:
-        self.state_q_O = pickle.load(open("qvalues_O_{}.pkl".format(num_games), "rb"))
+        self.state_q_O = pickle.load(open("qvalues_O_{}.txt".format(num_games), "rb"))
 
     def save_dict(self, num_games):
         # if self.identity == 1:
-        pickle.dump(self.state_q_X, open("qvalues_X_{}.pkl".format(num_games), "wb"))
+        pickle.dump(self.state_q_X, open("qvalues_X_{}.txt".format(num_games), "wb"))
         # else:
-        pickle.dump(self.state_q_O, open("qvalues_O_{}.pkl".format(num_games), "wb"))
+        pickle.dump(self.state_q_O, open("qvalues_O_{}.txt".format(num_games), "wb"))
 
     def state_q_values_O(self, go, state):
         state_np = string_to_state(state)
@@ -216,7 +215,6 @@ class Q_learning_agent:
             return minimax.get_input(go, self.identity)
         curr_max = -math.inf
         valid_places = []
-        # print(orientation)
         for actions in action_q_vals:
             if actions != "PASS":
                 actual_orientation_action = orient_action(actions, orientation)

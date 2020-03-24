@@ -1,15 +1,32 @@
 # 7042208305 :Reebbhaa Mehta
+import copy
 import math
 import pickle
 import random
-from mygame import Game
+from gamelearnopponent import Game
 import numpy
+from Minimax import Minimax
 
 GO_SIZE = 5
 WIN = 1
 LOSS = 0
 DRAW = 2
 INVALID_MOVE = -1.0
+
+"""
+Playing:
+- play game of go through the host
+- against all players
+- select best moves based on q value tables or policy tables
+"""
+"""
+Learning:
+- play game of go through the host
+- against random player & then itself
+- select best moves based on q value tables
+- update Q values after each game
+- update table of q values for each state
+"""
 
 
 def string_to_state(state_string):
@@ -24,12 +41,14 @@ def state_to_string(state):
 
 
 def orient_action(action, orientation):
-    # rotate left
-    for i in range(orientation[0]):
-        action = (GO_SIZE - 1 - action[1], action[0])
     # flip with x axis static
     if orientation[1] == 0:
         action = (GO_SIZE - 1 - action[0], action[1])
+
+    # rotate left
+    for i in range(orientation[0]):
+        action = (GO_SIZE - 1 - action[1], action[0])
+
     return action
 
 
@@ -43,6 +62,15 @@ def orient_action_to_base(action, orientation):
     return action
 
 
+def invert_orientation(orientation):
+    inverted_orientation = list(copy.deepcopy(orientation))
+    if orientation[0] == 1:
+        inverted_orientation[0] = 3
+    elif orientation[0] == 3:
+        inverted_orientation[0] = 1
+    return tuple(inverted_orientation)
+
+
 def symmetrical_states(current_board):
     # print(type(current_board))
     # exit()
@@ -53,7 +81,7 @@ def symmetrical_states(current_board):
         state_list.append((numpy.rot90(state_list[i][0]), (i+1, -1)))
     for i in range(4):
         rotations = state_list[i][1][0]
-        orientation = (rotations, 1)
+        orientation = (rotations, 0)
         state_list.append((numpy.flip(state_list[i][0], 0), orientation))
     # state = game.state_string()
     return state_list
@@ -108,83 +136,92 @@ class Q_learning_agent:
                 if self.state_q_O[states][action] > max_q:
                     max_q = self.state_q_O[states][action]
                     self.policy_O[states] = action
-        pickle.dump(self.policy_X, open("policy_learned_X_{}.pkl".format(num_games), "wb"))
-        pickle.dump(self.policy_O, open("policy_learned_O_{}.pkl".format(num_games), "wb"))
+        pickle.dump(self.policy_X, open("policy_learned_X_{}.txt".format(num_games), "wb"))
+        pickle.dump(self.policy_O, open("policy_learned_O_{}.txt".format(num_games), "wb"))
 
     def load_policy(self, num_games=0):
-        self.policy_X = pickle.load(open("policy_learned_X_{}.pkl".format(num_games), "rb"))
-        self.policy_O = pickle.load(open("policy_learned_O_{}.pkl".format(num_games), "rb"))
+        self.policy_X = pickle.load(open("policy_learned_X_{}.txt".format(num_games), "rb"))
+        self.policy_O = pickle.load(open("policy_learned_O_{}.txt".format(num_games), "rb"))
 
     def load_dict(self, num_games):
         # if self.identity == 1:
-        self.state_q_X = pickle.load(open("qvalues_X_{}.pkl".format(num_games), "rb"))
+        self.state_q_X = pickle.load(open("qvalues_X_{}.txt".format(num_games), "rb"))
         # else:
-        self.state_q_O = pickle.load(open("qvalues_O_{}.pkl".format(num_games), "rb"))
+        self.state_q_O = pickle.load(open("qvalues_O_{}.txt".format(num_games), "rb"))
 
     def save_dict(self, num_games):
         # if self.identity == 1:
-        pickle.dump(self.state_q_X, open("qvalues_X_{}.pkl".format(num_games), "wb"))
+        pickle.dump(self.state_q_X, open("qvalues_X_{}.txt".format(num_games), "wb"))
         # else:
-        pickle.dump(self.state_q_O, open("qvalues_O_{}.pkl".format(num_games), "wb"))
+        pickle.dump(self.state_q_O, open("qvalues_O_{}.txt".format(num_games), "wb"))
 
-    def state_q_values_O(self, state):
+    def state_q_values_O(self, go, state):
         state_np = string_to_state(state)
         symmetries = symmetrical_states(state_np)
         initial_state = state_to_string(symmetries[0][0])
         symm_index = [state_to_string(s[0]) in self.state_q_O for s in symmetries]
         if not any(symm_index):
-            # actions_q_values = {}
-            self.state_q_O[initial_state] = {}
-            for i in range(GO_SIZE):
-                for j in range(GO_SIZE):
-                    possible_action = (i, j)
-                    self.state_q_O[initial_state][possible_action] = random.random()
-            self.state_q_O[initial_state]["PASS"] = random.random()
-            # self.state_q[initial_state] = actions_q_values
-            orientation = (0, -1)
-            return self.state_q_O[initial_state], orientation, initial_state
+            if self.learn:
+                self.state_q_O[initial_state] = {}
+                for i in range(GO_SIZE):
+                    for j in range(GO_SIZE):
+                        possible_action = (i, j)
+                        self.state_q_O[initial_state][possible_action] = 0.7 # random.random()
+                self.state_q_O[initial_state]["PASS"] = 0.2  # random.random()
+                # self.state_q[initial_state] = actions_q_values
+                orientation = (0, -1)
+                return self.state_q_O[initial_state], orientation, initial_state
+            else:
+                return None, None, None
         else:
             orientation = symmetries[symm_index.index(True)][1]
+            inverted_orientation = invert_orientation(orientation)
             base_state = state_to_string(symmetries[symm_index.index(True)][0])
-            return self.state_q_O[base_state], orientation, base_state
+            return self.state_q_O[base_state], inverted_orientation, base_state
 
-    def state_q_values_X(self, state):
+    def state_q_values_X(self, go, state):
         state_np = string_to_state(state)
         symmetries = symmetrical_states(state_np)
         initial_state = state_to_string(symmetries[0][0])
         symm_index = [state_to_string(s[0]) in self.state_q_X for s in symmetries]
         if not any(symm_index):
-            # actions_q_values = {}
-            self.state_q_X[initial_state] = {}
-            for i in range(GO_SIZE):
-                for j in range(GO_SIZE):
-                    possible_action = (i, j)
-                    self.state_q_X[initial_state][possible_action] = random.random()
-            self.state_q_X[initial_state]["PASS"] = random.random()
-            # self.state_q[initial_state] = actions_q_values
-            orientation = (0, -1)
-            return self.state_q_X[initial_state], orientation, initial_state
+            if self.learn:
+                self.state_q_X[initial_state] = {}
+                for i in range(GO_SIZE):
+                    for j in range(GO_SIZE):
+                        possible_action = (i, j)
+                        self.state_q_X[initial_state][possible_action] = 0.5  # random.random()
+                self.state_q_X[initial_state]["PASS"] = 0.3  # random.random()
+                # self.state_q[initial_state] = actions_q_values
+                orientation = (0, -1)
+                return self.state_q_X[initial_state], orientation, initial_state
+            else:
+                return None, None, None
         else:
             orientation = symmetries[symm_index.index(True)][1]
+            inverted_orientation = invert_orientation(orientation)
             base_state = state_to_string(symmetries[symm_index.index(True)][0])
-            return self.state_q_X[base_state], orientation, base_state
+            return self.state_q_X[base_state], inverted_orientation, base_state
 
     def max_qvalue(self, go, piece_type):
         # state_base_orientation, orientation = symmetrical_states(go.board)
         # print(states_orientation)
         state = state_to_string(go.board)
         if self.identity == 1:
-            action_q_vals, orientation, base_state = self.state_q_values_X(state)
+            action_q_vals, orientation, base_state = self.state_q_values_X(go, state)
         else:
-            action_q_vals, orientation, base_state = self.state_q_values_O(state)
+            action_q_vals, orientation, base_state = self.state_q_values_O(go, state)
+        if action_q_vals is None:
+            minimax = Minimax()
+            minimax.side = self.identity
+            return minimax.get_input(go, self.identity)
         curr_max = -math.inf
         valid_places = []
         for actions in action_q_vals:
             if actions != "PASS":
                 actual_orientation_action = orient_action(actions, orientation)
                 if go.valid_place_check(actual_orientation_action[0], actual_orientation_action[1], piece_type, test_check=True):
-                    action_in_base = orient_action_to_base(actual_orientation_action, orientation)
-                    valid_places.append(action_in_base)
+                    valid_places.append(actions)
                 else:
                     action_q_vals[actions] = INVALID_MOVE
         # print(valid_places)
@@ -264,9 +301,9 @@ class Q_learning_agent:
         self.states_to_update.reverse()
         for state, move in self.states_to_update:
             if self.identity == 1:
-                base_state_action_q, orientation, base_state = self.state_q_values_X(state)
+                base_state_action_q, orientation, base_state = self.state_q_values_X(go, state)
             else:
-                base_state_action_q, orientation, base_state = self.state_q_values_O(state)
+                base_state_action_q, orientation, base_state = self.state_q_values_O(go, state)
             # TODO: what if you are propagating a loss?? Will you enter this also when not the reward?
             # Try using first_iteration instead as condition to enter this first if.
             # if max_q_value < 0:
@@ -285,7 +322,7 @@ class Q_learning_agent:
         if num_game % int(self.LEARN_GAMES / 100) == 0:
             self.update_epsilon()
             self.update_alpha()
-        if num_game % int(self.LEARN_GAMES / 100) == 0:
+        if num_game % int(self.LEARN_GAMES / 1000) == 0:
             if self.file_count == 1:
                 self.file_count = 0
             self.save_dict(self.file_count)

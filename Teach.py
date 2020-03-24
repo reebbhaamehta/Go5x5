@@ -82,10 +82,10 @@ def make_smarter(dict_number):
     random_player = RandomPlayer()
     minimax = Minimax()
     minimax_old = Minimax_old()
-    qlearner.alpha = 0.5
-    qlearner.epsilon = 0.3
-    qlearner.varyA_E = True
-    if dict_number > 0:
+    qlearner.alpha = 0.7
+    qlearner.epsilon = 0.1
+    qlearner.varyA_E = False
+    if dict_number > -1:
         qlearner.load_dict(dict_number)
     battle(qlearner, minimax_old, int(qlearner.LEARN_GAMES), False)
 

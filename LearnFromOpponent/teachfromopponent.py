@@ -1,11 +1,11 @@
 import time
 import argparse
-from LearnFromOpponent.learnfromopponent import Q_learning_agent
-from LearnFromOpponent.gamelearnopponent import Game
+from learnfromopponent import Q_learning_agent
+from gamelearnopponent import Game
 from random_player import RandomPlayer
 from Minimax import Minimax
 import sys
-from LearnFromOpponent.learnfromopponent import GO_SIZE
+from learnfromopponent import GO_SIZE
 from Minimax_old import Minimax_old
 from Minimax_old2 import Minimax_old2
 
@@ -70,10 +70,10 @@ def make_smarter(dict_number):
     qlearner = Q_learning_agent()
     random_player = RandomPlayer()
     minimax_old = Minimax_old()
-    qlearner.alpha = 0.5
-    qlearner.epsilon = 0.3
-    qlearner.varyA_E = True
-    if dict_number > 0:
+    qlearner.alpha = 0.7
+    qlearner.epsilon = 0.1
+    qlearner.varyA_E = False
+    if dict_number > -1:
         qlearner.load_dict(dict_number)
     battle(qlearner, random_player, int(qlearner.LEARN_GAMES), False)
 
