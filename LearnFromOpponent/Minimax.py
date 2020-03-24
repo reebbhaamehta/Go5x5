@@ -1,19 +1,19 @@
-import copy
+# 7042208305 :Reebbhaa Mehta
 
-# from Board import Board
+import copy
 import math
 import pickle
 import random
 
 import numpy
 
-from gamelearnopponent import Game
+from mygame import Game
 
 WIN_REWARD = 1.0
 DRAW_REWARD = 0.0
 LOSS_REWARD = -1.0
 GO_SIZE = 5
-DEPTH = 3
+DEPTH = 1
 
 
 class Minimax:
@@ -48,6 +48,8 @@ class Minimax:
         opponent_chain_weight = 5
         total_liberty_weight = 5
         total_opponent_liberty_weight = 5
+        self_corner_weight = 10
+        opponent_corner_weight = 10
 
         if piece_type == 1:
             count = count - game.komi
@@ -97,7 +99,12 @@ class Minimax:
                         count += -self_edge_weight
                     if board[i][j] == self.opponent and (i, j) in opponent_chain \
                             and len(opponent_chain) > 2:
-                        count += -opponent_edge_weight
+                        count += opponent_edge_weight
+                if (i, j) == (0, 0) or (i, j) == (4, 4) or (i, j) == (0, 4) or (i, j) == (4, 0):
+                    if board[i][j] == self.side:
+                        count += -self_corner_weight
+                    # if board[i][j] == self.opponent:
+                    #     count += opponent_corner_weight
                 count += -numpy.sqrt(len(opponent_chain)) * chain_weight
                 count += numpy.sqrt(len(chain)) * opponent_chain_weight
 
@@ -112,9 +119,13 @@ class Minimax:
     def learn(self, board):
         pass
 
+    def aggressive_action(self, go, piece_type):
+        pass
+
     def get_input(self, go: Game, piece_type):
         self.load_dict()
         # print(board.n_move)
+        go.visualize_board()
         if go.score(piece_type) <= 0:
             self.side = piece_type
             self.opponent = 1 if self.side == 2 else 2
@@ -130,10 +141,13 @@ class Minimax:
             return
         else:
             # score, action = self._max(board)
-            DEPTH = 3
+            depth = DEPTH
             if go.n_move > 18:
-                DEPTH = 24 - go.n_move
-            action = self.alpha_beta_cutoff_search(go, DEPTH)
+                depth = 24 - go.n_move
+            elif go.n_move < 8:
+                # return aggressive_action(go, piece_type)
+                depth = 1
+            action = self.alpha_beta_cutoff_search(go, depth)
             copy_board = copy.deepcopy(go)
             if action != "PASS":
                 # print(action)
@@ -158,7 +172,6 @@ class Minimax:
                 for j in range(board.size):
                     if board.valid_place_check(i, j, self.side, test_check=True):
                         candidates.append((i, j))
-            # print("Max candidates = {}".format(candidates))
             random.shuffle(candidates)
             if not candidates:
                 action = "PASS"
@@ -181,10 +194,7 @@ class Minimax:
 
         def min_value(board, alpha, beta, depth):
             state = board.state_string()
-            # if state in self.cache_min:
-            # return self.cache_min[state][0]
             if depth == 0 or board.game_end():
-                # board.visualize_board()
                 if state in self.cache:
                     return self.cache[state]
                 return self.total_score(board, self.side)
@@ -211,18 +221,11 @@ class Minimax:
                     v_min = min(v_min, max_value(copyBoard, alpha, beta, depth - 1))
                     if v_min is not None:
                         self.cache[state] = v_min
-                    # print("-"*60)
-                    # print("Min candidates = {}".format((i, j, v)))
-                    # board.visualize_board()
-                    # copyBoard.visualize_board()
-                    # print("-"*60)
                     if v_min <= alpha:
                         return v_min
                     beta = min(beta, v_min)
             return v_min
 
-        # self.load_dict_min()
-        # self.load_dict_max()
         best_score = -numpy.inf
         beta = numpy.inf
         best_action = None
@@ -239,15 +242,13 @@ class Minimax:
                 copyBoard = copy.deepcopy(go)
                 copyBoard.next_board(i, j, self.side, True)
                 copyBoard.n_move += 1
-                value = min_value(copyBoard, best_score, beta, depth)
+                if go.n_move < 8:
+                    value = max_value(copyBoard, best_score, beta, depth)
+                else:
+                    value = min_value(copyBoard, best_score, beta, depth)
                 if value > best_score:
-                    # print(best_action)
-                    # print(best_score)
                     best_score = value
                     best_action = (i, j)
-                    # print(best_action, best_score)
-        # self.save_dict_max()
-        # self.save_dict_min()
         return best_action
 
     def save_dict(self):

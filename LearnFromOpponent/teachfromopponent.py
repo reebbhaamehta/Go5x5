@@ -76,7 +76,7 @@ def make_smarter(dict_number):
     qlearner.varyA_E = False
     if dict_number > -1:
         qlearner.load_dict(dict_number)
-    battle(qlearner, minimax_old, int(qlearner.LEARN_GAMES), False)
+    battle(qlearner, minimax, int(qlearner.LEARN_GAMES), False)
 
 
 def testMinimax():

@@ -1,5 +1,4 @@
 import copy
-from LearnFromOpponent.learnfromopponent import state_to_string
 import numpy
 
 

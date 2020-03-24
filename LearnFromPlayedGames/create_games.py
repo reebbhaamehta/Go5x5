@@ -1,7 +1,7 @@
 import copy
 
 import numpy as np
-import LearnFromPlayedGames.gamelearnbuffer as go
+import gamelearnbuffer as go
 
 if __name__ == "__main__":
     games20 = "games-20.txt"
@@ -25,7 +25,7 @@ if __name__ == "__main__":
                 play_game = go.Game(5)
                 play_game.new_board()
                 state = play_game.state_string()
-
+                play_game.visualize_board()
             if line == "Black makes move...\n":
                 action = lines[line_num + 1].strip().split(",")
                 if action == ["PASS"]:
@@ -36,7 +36,7 @@ if __name__ == "__main__":
                     action = tuple(int(e) for e in action)
                     play_game.place_chess(action[0], action[1], 1, True)
                     play_game.died_pieces = play_game.remove_died_pieces(2)
-
+                play_game.visualize_board()
                 state_action.append((1, state, action))
 
             elif line == "White makes move...\n":
@@ -50,7 +50,7 @@ if __name__ == "__main__":
                     action = tuple(int(e) for e in action)
                     play_game.place_chess(action[0], action[1], 2, True)
                     play_game.died_pieces = play_game.remove_died_pieces(1)
-
+                play_game.visualize_board()
                 state_action.append((2, state, action))
 
             state = play_game.state_string()

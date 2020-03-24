@@ -103,8 +103,8 @@ class Minimax:
                 if (i, j) == (0, 0) or (i, j) == (4, 4) or (i, j) == (0, 4) or (i, j) == (4, 0):
                     if board[i][j] == self.side:
                         count += -self_corner_weight
-                    if board[i][j] == self.opponent:
-                        count += opponent_corner_weight
+                    # if board[i][j] == self.opponent:
+                    #     count += opponent_corner_weight
                 count += -numpy.sqrt(len(opponent_chain)) * chain_weight
                 count += numpy.sqrt(len(chain)) * opponent_chain_weight
 
