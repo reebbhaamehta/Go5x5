@@ -1,8 +1,8 @@
 import random
-from startercode.read import readInput
-from startercode.write import writeOutput
-
-from startercode.host import GO
+# from startercode.read import readInput
+# from startercode.write import writeOutput
+#
+# from startercode.host import GO
 
 
 class RandomPlayer():
@@ -31,11 +31,11 @@ class RandomPlayer():
             return random.choice(possible_placements)
 
 
-if __name__ == "__main__":
-    N = 5
-    piece_type, previous_board, board = readInput(N)
-    go = GO(N)
-    go.set_board(piece_type, previous_board, board)
-    player = RandomPlayer()
-    action = player.get_input(go, piece_type)
-    writeOutput(action)
+# if __name__ == "__main__":
+#     N = 5
+#     piece_type, previous_board, board = readInput(N)
+#     go = GO(N)
+#     go.set_board(piece_type, previous_board, board)
+#     player = RandomPlayer()
+#     action = player.get_input(go, piece_type)
+#     writeOutput(action)
