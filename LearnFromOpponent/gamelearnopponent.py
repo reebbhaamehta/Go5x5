@@ -389,16 +389,15 @@ class Game:
             else:
                 action = player2.get_input(self, piece_type)
 
-            if player1.learn and piece_type == 2:
-                player1.opponent_actions.append((state_to_string(self.board), action))
-            elif player2.learn and piece_type == 1:
-                player2.opponent_actions.append((state_to_string(self.board), action))
-
             # print(action)
             if verbose:
                 player = "X" if piece_type == 1 else "O"
 
             if action != "PASS":
+                if player1.learn and piece_type == 2:
+                    player1.opponent_actions.append((state_to_string(self.board), action))
+                elif player2.learn and piece_type == 1:
+                    player2.opponent_actions.append((state_to_string(self.board), action))
                 # If invalid input, continue the loop. Else it places a chess on the board.
                 if not self.place_chess(action[0], action[1], piece_type, True):
 
