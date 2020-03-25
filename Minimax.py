@@ -144,7 +144,7 @@ class Minimax:
             depth = DEPTH
             if go.n_move > 18:
                 depth = 24 - go.n_move
-            elif go.n_move < 8:
+            elif go.n_move < 7:
                 # return aggressive_action(go, piece_type)
                 depth = 1
             action = self.alpha_beta_cutoff_search(go, depth)
@@ -242,7 +242,7 @@ class Minimax:
                 copyBoard = copy.deepcopy(go)
                 copyBoard.next_board(i, j, self.side, True)
                 copyBoard.n_move += 1
-                if go.n_move < 8:
+                if go.n_move < 7:
                     value = max_value(copyBoard, best_score, beta, depth)
                 else:
                     value = min_value(copyBoard, best_score, beta, depth)

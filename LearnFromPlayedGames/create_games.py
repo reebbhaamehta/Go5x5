@@ -57,6 +57,7 @@ if __name__ == "__main__":
 
             if line == "White(You) win!\n":
                 winner = self_piece_type
+                print("O wins")
                 game_list.append((winner, state_action))
                 with open("games.txt", "a") as f:
                     f.writelines("{0},{1}\n" .format(winner, state_action))
@@ -69,6 +70,7 @@ if __name__ == "__main__":
             elif line == "Black(You) win!\n":
                 winner = self_piece_type
                 game_list.append((winner, state_action))
+                print("X wins")
                 with open("games.txt", "a") as f:
                     f.writelines("{0},{1}\n" .format(winner, state_action))
 
