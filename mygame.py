@@ -1,21 +1,55 @@
-import copy
-
+from copy import copy
 import numpy
+import json
+import time
 
+class GameEncoder(json.JSONEncoder):
+    def default(self, obj):
+      if isinstance(obj, Game):
+        return {
+          "n_move": obj.n_move,
+          "died_pieces": obj.died_pieces,
+          "verbose": obj.verbose,
+          "num_moves": obj.num_moves,
+          "max_moves": obj.max_moves,
+          "komi": obj.komi,
+          "size": obj.size,
+          "board": obj.board.tolist(),
+          "previous_board": obj.previous_board.tolist(),
+          "X_move": obj.X_move,
+          "prev_opponent_score": obj.prev_opponent_score,
+          "opponent_score": obj.opponent_score,
+          "opponent_prev_liberties": obj.opponent_prev_liberties,
+          "opponent_liberties": obj.opponent_liberties,
+          "new_game": obj.new_game,
+        }
+      return super(GameEncoder, self).default(obj)
+
+
+class GameDecoder(json.JSONDecoder):
+  def __init__(self, *args, **kwargs):
+    json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
+
+  def object_hook(self, obj):
+    # if isinstance(obj, Game):
+    g = Game(5)
+    g.__dict__.update(obj)
+    g.board = numpy.array(g.board)
+    g.previous_board = numpy.array(g.previous_board)
+    return g
 
 # TODO:Rewrite entire class
 class Game:
-
     def __init__(self, size):
         self.n_move = 0
         self.died_pieces = []
         self.verbose = None
         self.num_moves = 0
-        self.max_move = size * size - 1  # The max movement of a Go game
-        self.komi = size / 2  # Komi rule
+        self.max_moves = size * size - 1  # The max movement of a Go game
+        self.komi = size / 2.  # Komi rule
         self.size = size
         self.board = numpy.array(numpy.zeros((self.size, self.size)))
-        self.previous_board = copy.deepcopy(self.board)
+        self.previous_board = numpy.array(self.board)
         self.X_move = True
         self.prev_opponent_score = 0
         self.opponent_score = 0
@@ -25,60 +59,41 @@ class Game:
 
     def next_board(self, i, j, piece_type, test_check=True):
         # saves the board after pacing the stone and removing died pieces.
-        valid_placement = self.place_chess(i, j, piece_type, test_check)
+        valid_placement = self.place_new_stone(i, j, piece_type, test_check)
         if not valid_placement:
             raise ValueError("in next_board, invalid move")
         # Remove the dead pieces of opponent
         self.died_pieces = self.remove_died_pieces(3 - piece_type)
-        self.remove_certain_pieces(self.died_pieces)
+        self.remove_stones(self.died_pieces)
         return valid_placement
 
     def new_board(self):
-        self.board = numpy.array([[0 for x in range(self.size)] for y in range(self.size)])  # Empty space marked as 0
-        self.previous_board = copy.deepcopy(self.board)
+        self.board = numpy.zeros((self.size, self.size)) # Empty space marked as 0
+        self.previous_board = numpy.array(self.board)
 
     def state_string(self, state_type="Current"):
-        """ Encode the current state of the board as a string
         """
+        Encode the current state of the board as a string
+        """
+        tmp = None
         if state_type == "Current":
-            state_string = str(self.board.ravel())[1:-1].strip()
-            # return ''.join([str(self.board[i][j]) for i in range(self.size) for j in range(self.size)])
+            tmp = self.board.ravel()
         elif state_type == "Previous":
-            state_string = str(self.previous_board.ravel())[1:-1].strip()
-        return state_string
-        # return ''.join([str(self.previous_board[i][j]) for i in range(self.size) for j in range(self.size)])
+            tmp = self.previous_board.ravel()
+        return " ".join(map(str, tmp))
 
     def game_end(self, action="MOVE"):
-        """
-        Check if the game should end.
-
-        :param action: "MOVE" or "PASS".
-        :return: boolean indicating whether the game should end.
-        """
-
-        # Case 1: max move reached
-        if self.n_move >= self.max_move:
+        # Case 1: max moves
+        if self.n_move >= self.max_moves:
             return True
-        # Case 2: two players all pass the move.
+        # Case 2: both players pass.
         if self.compare_board(self.previous_board, self.board) and action == "PASS":
             return True
         return False
 
     def score(self, piece_type):
-        """
-        Get score of a player by counting the number of stones.
-
-        :param piece_type: 1('X') or 2('O').
-        :return: boolean indicating whether the game should end.
-        """
-
         board = self.board
-        count = 0
-        for i in range(self.size):
-            for j in range(self.size):
-                if board[i][j] == piece_type:
-                    count += 1
-        return count
+        return numpy.count_nonzero(board == piece_type)
 
     def find_liberty(self, i, j):
         """
@@ -99,6 +114,26 @@ class Game:
         # If none of the pieces in a allied group has an empty space, it has no liberty
         return False
 
+    def find_liberty_group(self, i, j):
+        """
+        Find liberty of a given stone. If a group of allied stones has no liberty, they all die.
+        Returns all stones part of such group.
+
+        :param i: row number of the board.
+        :param j: column number of the board.
+        :return: boolean indicating whether the given stone still has liberty.
+        """
+        board = self.board
+        ally_members = self.ally_dfs(i, j)
+        for member in ally_members:
+            neighbors = self.detect_neighbor(member[0], member[1])
+            for piece in neighbors:
+                # If there is empty space around a piece, it has liberty
+                if board[piece[0]][piece[1]] == 0:
+                    return None
+        # If none of the pieces in a allied group has an empty space, it has no liberty
+        return ally_members
+
     def valid_place_check(self, i, j, piece_type, test_check=False):
         """
         Check whether a placement is valid.
@@ -113,25 +148,17 @@ class Game:
         verbose = self.verbose
         if test_check:
             verbose = False
-
         # Check if the place is in the board range
         if not (i >= 0 and i < len(board)):
-            if verbose:
-                print(('Invalid placement. row should be in the range 1 to {}.').format(len(board) - 1))
             return False
         if not (j >= 0 and j < len(board)):
-            if verbose:
-                print(('Invalid placement. column should be in the range 1 to {}.').format(len(board) - 1))
             return False
 
         # Check if the place already has a piece
         if board[i][j] != 0:
-            if verbose:
-                print('Invalid placement. There is already a chess in this position.')
             return False
 
-        # Copy the board for testing
-        test_go = copy.deepcopy(self)
+        test_go = self.make_copy()
         test_board = test_go.board
 
         # Check if the place has liberty
@@ -143,24 +170,34 @@ class Game:
         # If not, remove the died pieces of opponent and check again
         test_go.remove_died_pieces(3 - piece_type)
         if not test_go.find_liberty(i, j):
-            if verbose:
-                print('Invalid placement. No liberty found in this position.')
             return False
-
-        # Check special case: repeat placement causing the repeat board state (KO rule)
+        # Check for repeat placement
         else:
             if self.died_pieces and self.compare_board(self.previous_board, test_go.board):
-                if verbose:
-                    print('Invalid placement. A repeat move not permitted by the KO rule.')
                 return False
         return True
 
     def compare_board(self, board1, board2):
-        for i in range(self.size):
-            for j in range(self.size):
-                if board1[i][j] != board2[i][j]:
-                    return False
-        return True
+        return numpy.array_equal(board1, board2)
+
+    def make_copy(self):
+        g = Game(self.size)
+        g.n_move = copy(self.n_move)
+        g.died_pieces = self.died_pieces.copy()
+        g.verbose = copy(self.verbose)
+        g.num_moves = copy(self.num_moves)
+        g.max_moves = copy(self.max_moves)
+        g.komi = copy(self.komi)
+        g.size = copy(self.size)
+        g.board = numpy.array(self.board, dtype='int')
+        g.previous_board = numpy.array(self.previous_board, dtype='int')
+        g.X_move = copy(self.X_move)
+        g.prev_opponent_score = copy(self.prev_opponent_score)
+        g.opponent_score = copy(self.opponent_score)
+        g.opponent_prev_liberties = copy(self.opponent_prev_liberties)
+        g.opponent_liberties = copy(self.opponent_liberties)
+        g.new_game = copy(self.new_game)
+        return g
 
     def find_died_pieces(self, piece_type):
         """
@@ -171,26 +208,20 @@ class Game:
         """
         board = self.board
         died_pieces = []
-
         for i in range(len(board)):
             for j in range(len(board)):
                 # Check if there is a piece at this position:
-                if board[i][j] == piece_type:
+                if board[i][j] == piece_type and (i,j) not in died_pieces:
                     # The piece die if it has no liberty
-                    if not self.find_liberty(i, j):
-                        died_pieces.append((i, j))
+                    tmp = self.find_liberty_group(i,j)
+                    if tmp is not None:
+                        died_pieces += tmp
         return died_pieces
 
-    def remove_certain_pieces(self, positions):
-        """
-        Remove the stones of certain locations.
-
-        :param positions: a list containing the pieces to be removed row and column(row, column)
-        :return: None.
-        """
+    def remove_stones(self, positions):
         board = self.board
-        for piece in positions:
-            board[piece[0]][piece[1]] = 0
+        for x,y in positions:
+            board[x][y] = 0
         self.board = board
 
     def remove_died_pieces(self, piece_type):
@@ -204,7 +235,7 @@ class Game:
         died_pieces = self.find_died_pieces(piece_type)
         if not died_pieces:
             return []
-        self.remove_certain_pieces(died_pieces)
+        self.remove_stones(died_pieces)
         return died_pieces
 
     def detect_neighbor(self, i, j):
@@ -215,13 +246,12 @@ class Game:
         :param j: column number of the board.
         :return: a list containing the neighbors row and column (row, column) of position (i, j).
         """
-        board = self.board
         neighbors = []
         # Detect borders and add neighbor coordinates
         if i > 0: neighbors.append((i - 1, j))
-        if i < len(board) - 1: neighbors.append((i + 1, j))
+        if i < self.size - 1: neighbors.append((i + 1, j))
         if j > 0: neighbors.append((i, j - 1))
-        if j < len(board) - 1: neighbors.append((i, j + 1))
+        if j < self.size - 1: neighbors.append((i, j + 1))
         return neighbors
 
     def detect_neighbor_ally(self, i, j):
@@ -235,11 +265,12 @@ class Game:
         board = self.board
         neighbors = self.detect_neighbor(i, j)  # Detect neighbors
         group_allies = []
+        piece = board[i][j]
         # Iterate through neighbors
-        for piece in neighbors:
+        for p_i, p_j in neighbors:
             # Add to allies list if having the same color
-            if board[piece[0]][piece[1]] == board[i][j]:
-                group_allies.append(piece)
+            if board[p_i][p_j] == piece:
+                group_allies.append((p_i, p_j))
         return group_allies
 
     def ally_dfs(self, i, j):
@@ -260,7 +291,7 @@ class Game:
             for ally in neighbor_allies:
                 if ally not in stack and ally not in ally_members:
                     stack.append(ally)
-        return ally_members
+        return sorted(ally_members)
 
     def set_board(self, piece_type, previous_board, board):
         """
@@ -282,7 +313,7 @@ class Game:
         self.previous_board = previous_board
         self.board = board
 
-    def place_chess(self, i, j, piece_type, test_check):
+    def place_new_stone(self, i, j, piece_type, test_check):
         """
         Place a chess stone in the board.
 
@@ -292,11 +323,10 @@ class Game:
         :return: boolean indicating whether the placement is valid.
         """
         board = self.board
-
         valid_place = self.valid_place_check(i, j, piece_type, test_check)
         if not valid_place:
             return False
-        self.previous_board = copy.deepcopy(board)
+        self.previous_board = numpy.array(board)
         board[i][j] = piece_type
         self.board = numpy.array(board)
         return True
@@ -380,18 +410,19 @@ class Game:
                 print(player + " makes move...")
 
             # Game continues
+            st = time.time()
             if piece_type == 1:
                 action = player1.get_input(self, piece_type)
             else:
                 action = player2.get_input(self, piece_type)
-
+            print("Player {} took {} to make a move".format(piece_type, time.time()-st))
             # print(action)
             if verbose:
                 player = "X" if piece_type == 1 else "O"
 
             if action != "PASS":
                 # If invalid input, continue the loop. Else it places a chess on the board.
-                if not self.place_chess(action[0], action[1], piece_type, True):
+                if not self.place_new_stone(action[0], action[1], piece_type, True):
 
                     if piece_type == 1:
                         print("-" * 60)
@@ -413,7 +444,7 @@ class Game:
 
                 self.died_pieces = self.remove_died_pieces(3 - piece_type)  # Remove the dead pieces of opponent
             else:
-                self.previous_board = copy.deepcopy(self.board)
+                self.previous_board = numpy.array(self.board)
 
             if verbose:
                 self.visualize_board()  # Visualize the board again
@@ -423,27 +454,12 @@ class Game:
             self.X_move = not self.X_move  # Players take turn
 
     def read_input(self):
-
         with open("input.txt", 'r') as f:
             lines = f.readlines()
             self.piece_type = int(lines[0])  # piece type being assigned to self is probably incorrect. Review.
             self.previous_board = [[int(letter) for letter in line.rstrip("\n")] for line in lines[1:self.size + 1]]
-            # index=0
-            # for line in lines[1:self.size + 1]:
-            #     line = line.rstrip("\n")
-            #     previous_board.append([])
-            #     for letter in line:
-            #         previous_board[index].append(int(letter))
-            #     index +=1
+
             self.board = [[int(x) for x in line.rstrip('\n')] for line in lines[self.size + 1: 2 * self.size + 1]]
-            # self.board = []
-            # index=0
-            # for line in lines[self.size + 1:2 * self.size + 1]:
-            #     line = line.rstrip("\n")
-            #     self.board.append([])
-            #     for letter in line:
-            #         self.board[index].append(int(letter))
-            #     index +=1
 
         with open("helper.txt", "r") as f:
             test = f.readline().strip()

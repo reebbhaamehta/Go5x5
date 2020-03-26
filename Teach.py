@@ -15,7 +15,7 @@ from Minimax_old2 import Minimax_old2
 
 X = 1
 O = 2
-TEST_GAMES = 1
+TEST_GAMES = 20
 GAME_SIZE = GO_SIZE
 
 """
@@ -122,7 +122,7 @@ def testMinimax():
 
     print(p1_stats, p2_stats)
     p1_stats = [round(x / TEST_GAMES * 100.0, 1) for x in p1_stats]
-    sys.stdout = open("Minimax_resutls.txt", "a")
+    # sys.stdout = open("Minimax_resutls.txt", "a")
     if True:
         print('_' * 60)
         print('{:>15}(X) | Wins:{}% Draws:{}% Losses:{}%'.format(player1.__class__.__name__, p1_stats[1], p1_stats[0],
@@ -207,6 +207,7 @@ def track_intelligence(pl_num, stats, batch, file, epsilon, alpha):
 
 
 if __name__ == "__main__":
+    st = time.time()
     parser = argparse.ArgumentParser()
     parser.add_argument("--run", type=int, help="minimax = 1 or qlearner = 0", default=0)
     parser.add_argument("--num", type=int, help="Dictionary number to be loaded", default=-1)
@@ -215,6 +216,7 @@ if __name__ == "__main__":
         testMinimax()
     else:
         make_smarter(args.num)
+    print("Running these games took {} s".format(time.time()-st))
         # testQlearner(args.num)
 # TODO: implement my own functions and classes to account for
 #  reading current / previous state and writing output files,

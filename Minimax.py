@@ -18,13 +18,28 @@ DEPTH = 1
 
 class Minimax:
 
-    def __init__(self, side=None):
-        self.side = side
+    def __init__(self, self_w=1, center_w=1, libert_w=500, self_edge_w=7, chain_weight=5, total_liberty_w=5, corner_weight=10, win_score=10**4):
+        self.side = 5
         self.cache = {}
         self.num_game = 0
         self.opponent = 1 if self.side == 2 else 2
         self.size = GO_SIZE
         self.learn = False
+
+        #  weights
+        self.self_weight                = self_w
+        self.opponent_weight            = self_w
+        self.center_weight              = center_w
+        self.liberty_weight             = libert_w
+        self.opponent_liberty_weight    = libert_w
+        self.self_edge_weight           = self_edge_w
+        self.opponent_edge_weight       = self_edge_w
+        self.chain_weight               = chain_weight
+        self.opponent_chain_weight      = chain_weight
+        self.total_liberty_weight       = total_liberty_w
+        self.self_corner_weight         = corner_weight
+        self.total_opponent_liberty_weight = total_liberty_w
+        self.win_score                  = win_score
 
     def total_score(self, game, piece_type):
         """
@@ -36,20 +51,6 @@ class Minimax:
         """
         board = game.board
         count = 0
-        #  weights
-        self_weight = 1
-        opponent_weight = 1
-        center_weight = 1
-        liberty_weight = 500
-        opponent_liberty_weight = 500
-        self_edge_weight = 7
-        opponent_edge_weight = 7
-        chain_weight = 5
-        opponent_chain_weight = 5
-        total_liberty_weight = 5
-        total_opponent_liberty_weight = 5
-        self_corner_weight = 10
-        opponent_corner_weight = 10
 
         if piece_type == 1:
             count = count - game.komi
@@ -60,21 +61,21 @@ class Minimax:
         if game.game_end():
             # game.visualize_board()
             if game.judge_winner() == piece_type:
-                return 10 ** 4  # game.score(piece_type) + count
+                count += 10 ** 4  # game.score(piece_type) + count
             elif game.judge_winner() == opponent:
-                return -10 ** 4
+                count += -10 ** 4
         liberty_array = numpy.zeros((game.size, game.size), dtype=bool)
         opponent_liberty_array = numpy.zeros((game.size, game.size), dtype=bool)
 
         if board[2][2] == piece_type:
-            count = count + center_weight
+            count = count + self.center_weight
 
         for i in range(self.size):
             for j in range(self.size):
                 # for every piece I have on the board I get two points
                 chain = []
                 if board[i][j] == self.side:
-                    count += self_weight
+                    count += self.self_weight
                     chain = game.ally_dfs(i, j)
                     neighbors = game.detect_neighbor(i, j)
                     for piece in neighbors:
@@ -82,10 +83,10 @@ class Minimax:
                         if board[piece[0]][piece[1]] == 0:
                             liberty_array[piece[0]][piece[1]] = True
                     if not numpy.any(liberty_array):
-                        count += -liberty_weight
+                        count += -self.liberty_weight
                 opponent_chain = []
                 if board[i][j] == opponent:
-                    count += -opponent_weight
+                    count += -self.opponent_weight
                     opponent_chain = game.ally_dfs(i, j)
                     neighbors = game.detect_neighbor(i, j)
                     for piece in neighbors:
@@ -93,23 +94,23 @@ class Minimax:
                         if board[piece[0]][piece[1]] == 0:
                             opponent_liberty_array[piece[0]][piece[1]] = True
                     if not numpy.any(opponent_liberty_array):
-                        count += opponent_liberty_weight
+                        count += self.opponent_liberty_weight
                 if i == 0 or i == 4 or j == 0 or j == 4:  # on the sides
                     if board[i][j] == self.side:
-                        count += -self_edge_weight
+                        count += -self.self_edge_weight
                     if board[i][j] == self.opponent and (i, j) in opponent_chain \
                             and len(opponent_chain) > 2:
-                        count += opponent_edge_weight
+                        count += self.opponent_edge_weight
                 if (i, j) == (0, 0) or (i, j) == (4, 4) or (i, j) == (0, 4) or (i, j) == (4, 0):
                     if board[i][j] == self.side:
-                        count += -self_corner_weight
+                        count += -self.self_corner_weight
                     # if board[i][j] == self.opponent:
                     #     count += opponent_corner_weight
-                count += -numpy.sqrt(len(opponent_chain)) * chain_weight
-                count += numpy.sqrt(len(chain)) * opponent_chain_weight
+                count += -numpy.sqrt(len(opponent_chain)) * self.chain_weight
+                count += numpy.sqrt(len(chain)) * self.opponent_chain_weight
 
-        count += numpy.sum(liberty_array) * total_liberty_weight
-        count += -numpy.sum(opponent_liberty_array) * total_opponent_liberty_weight
+        count += numpy.sum(liberty_array) * self.total_liberty_weight
+        count += -numpy.sum(opponent_liberty_array) * self.total_opponent_liberty_weight
         return count
 
     def set_side(self, side):
@@ -132,7 +133,7 @@ class Minimax:
             self.cache = {}
             open("cache.txt", "w").close()
             if go.valid_place_check(2, 2, self.side, True):
-                copy_board = copy.deepcopy(go)
+                copy_board = go.make_copy()
                 copy_board.next_board(2, 2, self.side, True)
                 # print("Minimax: piece_type = {}".format(self.side), \
                 #       "current board value = {}".format(self.total_score(copy_board, self.side)))
@@ -148,7 +149,7 @@ class Minimax:
                 # return aggressive_action(go, piece_type)
                 depth = 1
             action = self.alpha_beta_cutoff_search(go, depth)
-            copy_board = copy.deepcopy(go)
+            copy_board = go.make_copy()
             if action != "PASS":
                 # print(action)
                 copy_board.next_board(action[0], action[1], self.side, True)
@@ -161,8 +162,8 @@ class Minimax:
     def alpha_beta_cutoff_search(self, go: Game, depth=4):
 
         def max_value(board, alpha, beta, depth):
-            state = board.state_string()
             if depth == 0 or board.game_end():
+                state = board.state_string()
                 if state in self.cache:
                     return self.cache[state]
                 return self.total_score(board, self.side)
@@ -181,11 +182,12 @@ class Minimax:
                 alpha = max(alpha, v_max)
             else:
                 for i, j in candidates:
-                    copyBoard = copy.deepcopy(board)
+                    copyBoard = board.make_copy()
                     copyBoard.next_board(i, j, self.side, False)
                     copyBoard.n_move += 1
                     v_max = max(v_max, min_value(copyBoard, alpha, beta, depth - 1))
                     if v_max is not None:
+                        state = board.state_string()
                         self.cache[state] = v_max
                     if v_max >= beta:
                         return v_max
@@ -193,8 +195,8 @@ class Minimax:
             return v_max
 
         def min_value(board, alpha, beta, depth):
-            state = board.state_string()
             if depth == 0 or board.game_end():
+                state = board.state_string()
                 if state in self.cache:
                     return self.cache[state]
                 return self.total_score(board, self.side)
@@ -213,13 +215,14 @@ class Minimax:
                 beta = min(beta, v_min)
             else:
                 for i, j in candidates:
-                    copyBoard = copy.deepcopy(board)
+                    copyBoard = board.make_copy()
                     valid = copyBoard.next_board(i, j, self.opponent, True)
                     copyBoard.n_move += 1
                     if not valid:
                         raise ValueError("in min invalid move")
                     v_min = min(v_min, max_value(copyBoard, alpha, beta, depth - 1))
                     if v_min is not None:
+                        state = board.state_string()
                         self.cache[state] = v_min
                     if v_min <= alpha:
                         return v_min
@@ -239,7 +242,7 @@ class Minimax:
             best_action = "PASS"
         else:
             for i, j in candidates:
-                copyBoard = copy.deepcopy(go)
+                copyBoard = go.make_copy()
                 copyBoard.next_board(i, j, self.side, True)
                 copyBoard.n_move += 1
                 if go.n_move < 7:
