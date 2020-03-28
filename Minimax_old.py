@@ -54,7 +54,7 @@ class Minimax_old:
                     count += 1
                     ally_members = game.ally_dfs(i, j)
                     for member in ally_members:
-                        neighbors = game.detect_neighbor(member[0], member[1])
+                        neighbors = game.gimme_adjacent(member[0], member[1])
                         for piece in neighbors:
                         # If there is empty space around a piece, it has liberty
                             # I get + 2 points for each liberty I have
@@ -81,16 +81,16 @@ class Minimax_old:
         pass
 
     def get_input(self, board: Game, piece_type):
-        if board.score(piece_type) <= 0:
+        if board.count_player_stones(piece_type) <= 0:
             self.side = piece_type
             self.opponent = 1 if self.side == 2 else 2
-            if board.valid_place_check(2, 2, self.side, True):
+            if board.is_position_valid(2, 2, self.side, True):
                 copy_board = copy.deepcopy(board)
                 copy_board.place_chess(2, 2, self.side, True)
                 # print("Minimax_old: piece_type = {}".format(self.side), \
                 #       "current board value = {}".format(self.total_score(copy_board, self.side)))
                 return 2, 2
-        if board.game_end():
+        if board.is_game_finished():
             return
         else:
             # score, action = self._max(board)
@@ -106,14 +106,14 @@ class Minimax_old:
 
         def max_value(board, alpha, beta, depth):
             state = board.state_string()
-            if depth == 0 or board.game_end():
+            if depth == 0 or board.is_game_finished():
                 # board.visualize_board()
                 return self.total_score(board, self.side)
             v = -np.inf
             candidates = []
             for i in range(board.size):
                 for j in range(board.size):
-                    if board.valid_place_check(i, j, self.side, test_check=True):
+                    if board.is_position_valid(i, j, self.side, test_check=True):
                         candidates.append((i, j))
             # print("Max candidates = {}".format(candidates))
             random.shuffle(candidates)
@@ -143,14 +143,14 @@ class Minimax_old:
             state = board.state_string()
             # if state in self.cache_min:
             # return self.cache_min[state][0]
-            if depth == 0 or board.game_end():
+            if depth == 0 or board.is_game_finished():
                 # board.visualize_board()
                 return self.total_score(board, self.side)
             v = np.inf
             candidates = []
             for i in range(board.size):
                 for j in range(board.size):
-                    if board.valid_place_check(i, j, self.opponent, test_check=True):
+                    if board.is_position_valid(i, j, self.opponent, test_check=True):
                         candidates.append((i, j))
             random.shuffle(candidates)
             if not candidates:
@@ -185,7 +185,7 @@ class Minimax_old:
         candidates = []
         for i in range(board.size):
             for j in range(board.size):
-                if board.valid_place_check(i, j, self.side, test_check=True):
+                if board.is_position_valid(i, j, self.side, test_check=True):
                     candidates.append((i, j))
         random.shuffle(candidates)
         if not candidates:

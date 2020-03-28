@@ -31,12 +31,12 @@ class Minimax:
         pass
 
     def get_input(self, board: Game, piece_type):
-        if board.score(piece_type) <= 0:
+        if board.count_player_stones(piece_type) <= 0:
             self.side = piece_type
             self.opponent = 1 if self.side == 2 else 2
-            if board.valid_place_check(2, 2, self.side, True):
+            if board.is_position_valid(2, 2, self.side, True):
                 return 2, 2
-        if board.game_end():
+        if board.is_game_finished():
             return
         else:
             # score, action = self._max(board)
@@ -47,14 +47,14 @@ class Minimax:
 
         def max_value(board, alpha, beta, depth):
             state = board.state_string()
-            if depth == 0 or board.game_end():
+            if depth == 0 or board.is_game_finished():
                 # board.visualize_board()
                 return board.total_score(self.side)
             v = -np.inf
             candidates = []
             for i in range(board.size):
                 for j in range(board.size):
-                    if board.valid_place_check(i, j, self.side, test_check=True):
+                    if board.is_position_valid(i, j, self.side, test_check=True):
                         candidates.append((i, j))
             # print("Max candidates = {}".format(candidates))
             random.shuffle(candidates)
@@ -84,14 +84,14 @@ class Minimax:
             state = board.state_string()
             # if state in self.cache_min:
                 # return self.cache_min[state][0]
-            if depth == 0 or board.game_end():
+            if depth == 0 or board.is_game_finished():
                 # board.visualize_board()
                 return board.total_score(self.side)
             v = np.inf
             candidates = []
             for i in range(board.size):
                 for j in range(board.size):
-                    if board.valid_place_check(i, j, self.opponent, test_check=True):
+                    if board.is_position_valid(i, j, self.opponent, test_check=True):
                         candidates.append((i, j))
             random.shuffle(candidates)
             if not candidates:
@@ -125,7 +125,7 @@ class Minimax:
         candidates = []
         for i in range(board.size):
             for j in range(board.size):
-                if board.valid_place_check(i, j, self.side, test_check=True):
+                if board.is_position_valid(i, j, self.side, test_check=True):
                     candidates.append((i, j))
         random.shuffle(candidates)
         if not candidates:

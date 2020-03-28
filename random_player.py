@@ -22,7 +22,7 @@ class RandomPlayer():
         possible_placements = []
         for i in range(go.size):
             for j in range(go.size):
-                if go.valid_place_check(i, j, piece_type, test_check=True):
+                if go.is_position_valid(i, j, piece_type, test_check=True):
                     possible_placements.append((i, j))
 
         if not possible_placements:

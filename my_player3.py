@@ -211,14 +211,14 @@ class Q_learning_agent:
             action_q_vals, orientation, base_state = self.state_q_values_O(go, state)
         if action_q_vals is None:
             minimax = Minimax()
-            minimax.side = self.identity
+            minimax.identity = self.identity
             return minimax.get_input(go, self.identity)
         curr_max = -math.inf
         valid_places = []
         for actions in action_q_vals:
             if actions != "PASS":
                 actual_orientation_action = orient_action(actions, orientation)
-                if go.valid_place_check(actual_orientation_action[0], actual_orientation_action[1], piece_type, test_check=True):
+                if go.is_position_valid(actual_orientation_action[0], actual_orientation_action[1], piece_type, test_check=True):
                     valid_places.append(actions)
                 else:
                     action_q_vals[actions] = INVALID_MOVE
@@ -239,10 +239,10 @@ class Q_learning_agent:
         return action
 
     def get_input(self, go, piece_type):
-        if self.identity != piece_type and go.score(piece_type) <= 0:
+        if self.identity != piece_type and go.count_player_stones(piece_type) <= 0:
             self.identity = piece_type
             self.opponent = 1 if piece_type == 2 else 2
-        if go.game_end():
+        if go.is_game_finished():
             return
         action = self.max_qvalue(go, piece_type)
         # self.states_to_update.append((go.state_string(), action))
@@ -251,7 +251,7 @@ class Q_learning_agent:
     def get_input_policy(self, go, piece_type):
         # if self.identity != piece_type and go.score(piece_type) <= 0:
         #     self.identity = piece_type
-        if go.game_end():
+        if go.is_game_finished():
             return
         state = go.state_string()
         if piece_type == 1:
@@ -261,7 +261,7 @@ class Q_learning_agent:
                 while True:
                     action = random.choice(list(self.policy_X.values()))
                     if action != "PASS":
-                        if go.valid_place_check(action[0], action[1], piece_type, test_check=True):
+                        if go.is_position_valid(action[0], action[1], piece_type, test_check=True):
                             return action
         else:
             if state in self.policy_O:
@@ -270,7 +270,7 @@ class Q_learning_agent:
                 while True:
                     action = random.choice(list(self.policy_O.values()))
                     if action != "PASS":
-                        if go.valid_place_check(action[0], action[1], piece_type, test_check=True):
+                        if go.is_position_valid(action[0], action[1], piece_type, test_check=True):
                             return action
         # action = self.max_qvalue(go, piece_type)
         # self.states_to_update.append((go.state_string(), action))
@@ -289,7 +289,7 @@ class Q_learning_agent:
     def update_Qvalues(self, go, num_game):
         # after a game update the q table
         # check result to set the reward
-        winner = go.judge_winner()
+        winner = go.and_the_winner_is___()
         if winner == self.identity:
             reward = WIN
         elif winner == 0:

@@ -38,7 +38,7 @@ class GameDecoder(json.JSONDecoder):
     g.previous_board = numpy.array(g.previous_board)
     return g
 
-# TODO:Rewrite entire class
+
 class Game:
     def __init__(self, size):
         self.n_move = 0
@@ -58,12 +58,12 @@ class Game:
         self.new_game = False
 
     def next_board(self, i, j, piece_type, test_check=True):
-        # saves the board after pacing the stone and removing died pieces.
+        # Saves the board after placing the stone and removing died pieces.
         valid_placement = self.place_new_stone(i, j, piece_type, test_check)
         if not valid_placement:
             raise ValueError("in next_board, invalid move")
         # Remove the dead pieces of opponent
-        self.died_pieces = self.remove_died_pieces(3 - piece_type)
+        self.died_pieces = self.clean_dead_stones(3 - piece_type)
         self.remove_stones(self.died_pieces)
         return valid_placement
 
@@ -82,7 +82,7 @@ class Game:
             tmp = self.previous_board.ravel()
         return " ".join(map(str, tmp))
 
-    def game_end(self, action="MOVE"):
+    def is_game_finished(self, action="MOVE"):
         # Case 1: max moves
         if self.n_move >= self.max_moves:
             return True
@@ -91,89 +91,53 @@ class Game:
             return True
         return False
 
-    def score(self, piece_type):
+    def count_player_stones(self, piece_type):
         board = self.board
         return numpy.count_nonzero(board == piece_type)
 
-    def find_liberty(self, i, j):
-        """
-        Find liberty of a given stone. If a group of allied stones has no liberty, they all die.
-
-        :param i: row number of the board.
-        :param j: column number of the board.
-        :return: boolean indicating whether the given stone still has liberty.
-        """
+    def has_liberty(self, i, j):
         board = self.board
-        ally_members = self.ally_dfs(i, j)
-        for member in ally_members:
-            neighbors = self.detect_neighbor(member[0], member[1])
-            for piece in neighbors:
-                # If there is empty space around a piece, it has liberty
-                if board[piece[0]][piece[1]] == 0:
+        island = self.ally_dfs(i, j)
+        for position in island:
+            adjacent_stones = self.gimme_adjacent(position[0], position[1])
+            for stone in adjacent_stones:
+                if board[stone[0]][stone[1]] == 0:
                     return True
-        # If none of the pieces in a allied group has an empty space, it has no liberty
         return False
 
-    def find_liberty_group(self, i, j):
-        """
-        Find liberty of a given stone. If a group of allied stones has no liberty, they all die.
-        Returns all stones part of such group.
-
-        :param i: row number of the board.
-        :param j: column number of the board.
-        :return: boolean indicating whether the given stone still has liberty.
-        """
+    def island_with_liberty(self, i, j):
         board = self.board
-        ally_members = self.ally_dfs(i, j)
-        for member in ally_members:
-            neighbors = self.detect_neighbor(member[0], member[1])
-            for piece in neighbors:
-                # If there is empty space around a piece, it has liberty
-                if board[piece[0]][piece[1]] == 0:
+        island = self.ally_dfs(i, j)
+        for position in island:
+            adjacent_stones = self.gimme_adjacent(position[0], position[1])
+            for stone in adjacent_stones:
+                if board[stone[0]][stone[1]] == 0:
                     return None
-        # If none of the pieces in a allied group has an empty space, it has no liberty
-        return ally_members
+        return island
 
-    def valid_place_check(self, i, j, piece_type, test_check=False):
-        """
-        Check whether a placement is valid.
-
-        :param i: row number of the board.
-        :param j: column number of the board.
-        :param piece_type: 1(white piece)(X) or 2(black piece)(O).
-        :param test_check: boolean if it's a test check.
-        :return: boolean indicating whether the placement is valid.
-        """
+    def is_position_valid(self, i, j, piece_type, *args, **kwargs):
         board = self.board
-        verbose = self.verbose
-        if test_check:
-            verbose = False
-        # Check if the place is in the board range
         if not (i >= 0 and i < len(board)):
             return False
         if not (j >= 0 and j < len(board)):
             return False
 
-        # Check if the place already has a piece
         if board[i][j] != 0:
             return False
 
         test_go = self.make_copy()
         test_board = test_go.board
 
-        # Check if the place has liberty
         test_board[i][j] = piece_type
         test_go.board = test_board
-        if test_go.find_liberty(i, j):
+        if test_go.has_liberty(i, j):
             return True
 
-        # If not, remove the died pieces of opponent and check again
-        test_go.remove_died_pieces(3 - piece_type)
-        if not test_go.find_liberty(i, j):
+        test_go.clean_dead_stones(3 - piece_type)
+        if not test_go.has_liberty(i, j):
             return False
-        # Check for repeat placement
         else:
-            if self.died_pieces and self.compare_board(self.previous_board, test_go.board):
+            if self.died_pieces and numpy.array_equal(self.previous_board, test_go.board):
                 return False
         return True
 
@@ -199,172 +163,92 @@ class Game:
         g.new_game = copy(self.new_game)
         return g
 
-    def find_died_pieces(self, piece_type):
-        """
-        Find the died stones that has no liberty in the board for a given piece type.
-
-        :param piece_type: 1('X') or 2('O').
-        :return: a list containing the dead pieces row and column(row, column).
-        """
+    def find_dead_stones(self, stone_type):
         board = self.board
-        died_pieces = []
-        for i in range(len(board)):
-            for j in range(len(board)):
-                # Check if there is a piece at this position:
-                if board[i][j] == piece_type and (i,j) not in died_pieces:
-                    # The piece die if it has no liberty
-                    tmp = self.find_liberty_group(i,j)
+        kills = []
+        for i in range(self.size):
+            for j in range(self.size):
+                if board[i][j] == stone_type and (i, j) not in kills:
+                    tmp = self.island_with_liberty(i, j)
                     if tmp is not None:
-                        died_pieces += tmp
-        return died_pieces
+                        kills += tmp
+        return kills
 
     def remove_stones(self, positions):
         board = self.board
-        for x,y in positions:
+        for x, y in positions:
             board[x][y] = 0
         self.board = board
 
-    def remove_died_pieces(self, piece_type):
-        """
-        Remove the dead stones in the board.
-
-        :param piece_type: 1('X') or 2('O').
-        :return: locations of dead pieces.
-        """
-
-        died_pieces = self.find_died_pieces(piece_type)
-        if not died_pieces:
+    def clean_dead_stones(self, stone_type):
+        dead_stones = self.find_dead_stones(stone_type)
+        if not dead_stones:
             return []
-        self.remove_stones(died_pieces)
-        return died_pieces
+        self.remove_stones(dead_stones)
+        return dead_stones
 
-    def detect_neighbor(self, i, j):
-        """
-        Detect all the neighbors of a given stone.
+    def gimme_adjacent(self, i, j):
+        adjacent_stones = []
+        if i > 0: adjacent_stones.append((i - 1, j))
+        if i < self.size - 1: adjacent_stones.append((i + 1, j))
+        if j > 0: adjacent_stones.append((i, j - 1))
+        if j < self.size - 1: adjacent_stones.append((i, j + 1))
+        return adjacent_stones
 
-        :param i: row number of the board.
-        :param j: column number of the board.
-        :return: a list containing the neighbors row and column (row, column) of position (i, j).
-        """
-        neighbors = []
-        # Detect borders and add neighbor coordinates
-        if i > 0: neighbors.append((i - 1, j))
-        if i < self.size - 1: neighbors.append((i + 1, j))
-        if j > 0: neighbors.append((i, j - 1))
-        if j < self.size - 1: neighbors.append((i, j + 1))
-        return neighbors
-
-    def detect_neighbor_ally(self, i, j):
-        """
-        Detect the neighbor allies of a given stone.
-
-        :param i: row number of the board.
-        :param j: column number of the board.
-        :return: a list containing the neighbored allies row and column (row, column) of position (i, j).
-        """
+    def detect_adj_my_island(self, i, j):
         board = self.board
-        neighbors = self.detect_neighbor(i, j)  # Detect neighbors
-        group_allies = []
+        adjacent_stones = self.gimme_adjacent(i, j)  # Detect neighbors
+        island_memebers = []
         piece = board[i][j]
-        # Iterate through neighbors
-        for p_i, p_j in neighbors:
-            # Add to allies list if having the same color
+        for p_i, p_j in adjacent_stones:
             if board[p_i][p_j] == piece:
-                group_allies.append((p_i, p_j))
-        return group_allies
+                island_memebers.append((p_i, p_j))
+        return island_memebers
 
     def ally_dfs(self, i, j):
-        """
-        Using DFS to search for all allies of a given stone.
+        to_be_checked = [(i, j)]
+        island_members = []
+        while to_be_checked:
+            stone = to_be_checked.pop()
+            island_members.append(stone)
+            adjacent_stones = self.detect_adj_my_island(stone[0], stone[1])
+            for island_mate in adjacent_stones:
+                if island_mate not in to_be_checked and island_mate not in island_members:
+                    to_be_checked.append(island_mate)
+        return sorted(island_members)
 
-        :param i: row number of the board.
-        :param j: column number of the board.
-        :return: a list containing the all allies row and column (row, column) of position (i, j).
-        """
-        ini = (i, j)
-        stack = [(i, j)]  # stack for DFS serach
-        ally_members = []  # record allies positions during the search
-        while stack:
-            piece = stack.pop()
-            ally_members.append(piece)
-            neighbor_allies = self.detect_neighbor_ally(piece[0], piece[1])
-            for ally in neighbor_allies:
-                if ally not in stack and ally not in ally_members:
-                    stack.append(ally)
-        return sorted(ally_members)
-
-    def set_board(self, piece_type, previous_board, board):
-        """
-        Initialize board status.
-        :param previous_board: previous board state.
-        :param board: current board state.
-        :return: None.
-        """
-
-        # 'X' pieces marked as 1
-        # 'O' pieces marked as 2
-
+    def set_board(self, stone_type, previous_board, board):
         for i in range(self.size):
             for j in range(self.size):
-                if previous_board[i][j] == piece_type and board[i][j] != piece_type:
+                if previous_board[i][j] == stone_type and board[i][j] != stone_type:
                     self.died_pieces.append((i, j))
-
-        # self.piece_type = piece_type
         self.previous_board = previous_board
         self.board = board
 
     def place_new_stone(self, i, j, piece_type, test_check):
-        """
-        Place a chess stone in the board.
-
-        :param i: row number of the board.
-        :param j: column number of the board.
-        :param piece_type: 1('X') or 2('O').
-        :return: boolean indicating whether the placement is valid.
-        """
         board = self.board
-        valid_place = self.valid_place_check(i, j, piece_type, test_check)
-        if not valid_place:
+        if not self.is_position_valid(i, j, piece_type, test_check):
             return False
         self.previous_board = numpy.array(board)
         board[i][j] = piece_type
         self.board = numpy.array(board)
         return True
 
-    def judge_winner(self):
-        """
-        Judge the winner of the game by number of pieces for each player.
-
-        :param: None.
-        :return: piece type of winner of the game (0 if it's a tie).
-        """
-
-        cnt_1 = self.score(1)
-        cnt_2 = self.score(2)
-        if cnt_1 > cnt_2 + self.komi:
+    def and_the_winner_is___(self):
+        scores = self.game_scores()
+        if scores[0] > scores[1]:
             return 1
-        elif cnt_1 < cnt_2 + self.komi:
+        elif scores[0] < scores[1]:
             return 2
         else:
             return 0
 
-    def komi_score(self):
-
-        cnt_1 = self.score(1)
-        cnt_2 = self.score(2)
-        if cnt_1 > cnt_2 + self.komi:
-            return cnt_1
-        elif cnt_1 < cnt_2 + self.komi:
-            return cnt_2
-        else:
-            return 0
+    def game_scores(self):
+        cnt_1 = self.count_player_stones(1)
+        cnt_2 = self.count_player_stones(2)
+        return cnt_1, cnt_2 + self.komi
 
     def visualize_board(self):
-        '''
-        Visualize the board.
-
-        :return: None
-        '''
         board = self.board
 
         print('-' * len(board) * 2)
@@ -395,8 +279,8 @@ class Game:
             piece_type = 1 if self.X_move else 2
 
             # Judge if the game should end
-            if self.game_end(piece_type):
-                result = self.judge_winner()
+            if self.is_game_finished(piece_type):
+                result = self.and_the_winner_is___()
                 if verbose:
                     print('Game ended.')
                     if result == 0:
@@ -442,7 +326,7 @@ class Game:
                     # continue
                     return -1  # return -1 if the move is invalid for training purposes
 
-                self.died_pieces = self.remove_died_pieces(3 - piece_type)  # Remove the dead pieces of opponent
+                self.died_pieces = self.clean_dead_stones(3 - piece_type)  # Remove the dead pieces of opponent
             else:
                 self.previous_board = numpy.array(self.board)
 

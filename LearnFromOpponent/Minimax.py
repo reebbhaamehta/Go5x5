@@ -57,11 +57,11 @@ class Minimax:
         else:
             opponent = 1
 
-        if game.game_end():
+        if game.is_game_finished():
             # game.visualize_board()
-            if game.judge_winner() == piece_type:
+            if game.and_the_winner_is___() == piece_type:
                 return 10 ** 4  # game.score(piece_type) + count
-            elif game.judge_winner() == opponent:
+            elif game.and_the_winner_is___() == opponent:
                 return -10 ** 4
         liberty_array = numpy.zeros((game.size, game.size), dtype=bool)
         opponent_liberty_array = numpy.zeros((game.size, game.size), dtype=bool)
@@ -76,7 +76,7 @@ class Minimax:
                 if board[i][j] == self.side:
                     count += self_weight
                     chain = game.ally_dfs(i, j)
-                    neighbors = game.detect_neighbor(i, j)
+                    neighbors = game.gimme_adjacent(i, j)
                     for piece in neighbors:
                         # If there is empty space around a piece, it has liberty
                         if board[piece[0]][piece[1]] == 0:
@@ -87,7 +87,7 @@ class Minimax:
                 if board[i][j] == opponent:
                     count += -opponent_weight
                     opponent_chain = game.ally_dfs(i, j)
-                    neighbors = game.detect_neighbor(i, j)
+                    neighbors = game.gimme_adjacent(i, j)
                     for piece in neighbors:
                         # If there is empty space around a piece, it has liberty
                         if board[piece[0]][piece[1]] == 0:
@@ -126,18 +126,18 @@ class Minimax:
         self.load_dict()
         # print(board.n_move)
         # go.visualize_board()
-        if go.score(piece_type) <= 0:
+        if go.count_player_stones(piece_type) <= 0:
             self.side = piece_type
             self.opponent = 1 if self.side == 2 else 2
             self.cache = {}
             open("cache.txt", "w").close()
-            if go.valid_place_check(2, 2, self.side, True):
+            if go.is_position_valid(2, 2, self.side, True):
                 copy_board = copy.deepcopy(go)
                 copy_board.next_board(2, 2, self.side, True)
                 # print("Minimax: piece_type = {}".format(self.side), \
                 #       "current board value = {}".format(self.total_score(copy_board, self.side)))
                 return 2, 2
-        if go.game_end():
+        if go.is_game_finished():
             return
         else:
             # score, action = self._max(board)
@@ -162,7 +162,7 @@ class Minimax:
 
         def max_value(board, alpha, beta, depth):
             state = board.state_string()
-            if depth == 0 or board.game_end():
+            if depth == 0 or board.is_game_finished():
                 if state in self.cache:
                     return self.cache[state]
                 return self.total_score(board, self.side)
@@ -170,7 +170,7 @@ class Minimax:
             candidates = []
             for i in range(board.size):
                 for j in range(board.size):
-                    if board.valid_place_check(i, j, self.side, test_check=True):
+                    if board.is_position_valid(i, j, self.side, test_check=True):
                         candidates.append((i, j))
             random.shuffle(candidates)
             if not candidates:
@@ -194,7 +194,7 @@ class Minimax:
 
         def min_value(board, alpha, beta, depth):
             state = board.state_string()
-            if depth == 0 or board.game_end():
+            if depth == 0 or board.is_game_finished():
                 if state in self.cache:
                     return self.cache[state]
                 return self.total_score(board, self.side)
@@ -202,7 +202,7 @@ class Minimax:
             candidates = []
             for i in range(board.size):
                 for j in range(board.size):
-                    if board.valid_place_check(i, j, self.opponent, test_check=True):
+                    if board.is_position_valid(i, j, self.opponent, test_check=True):
                         candidates.append((i, j))
             random.shuffle(candidates)
             if not candidates:
@@ -232,7 +232,7 @@ class Minimax:
         candidates = []
         for i in range(go.size):
             for j in range(go.size):
-                if go.valid_place_check(i, j, self.side, test_check=True):
+                if go.is_position_valid(i, j, self.side, test_check=True):
                     candidates.append((i, j))
         random.shuffle(candidates)
         if not candidates:

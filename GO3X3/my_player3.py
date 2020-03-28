@@ -197,7 +197,7 @@ class Q_learning_agent:
         for actions in action_q_vals:
             if actions != "PASS":
                 actual_orientation_action = orient_action(actions, orientation)
-                if go.valid_place_check(actual_orientation_action[0], actual_orientation_action[1], piece_type, test_check=True):
+                if go.is_position_valid(actual_orientation_action[0], actual_orientation_action[1], piece_type, test_check=True):
                     action_in_base = orient_action_to_base(actual_orientation_action, orientation)
                     valid_places.append(action_in_base)
                 # else:
@@ -219,9 +219,9 @@ class Q_learning_agent:
         return action
 
     def get_input(self, go, piece_type):
-        if self.identity != piece_type and go.score(piece_type) <= 0:
+        if self.identity != piece_type and go.count_player_stones(piece_type) <= 0:
             self.identity = piece_type
-        if go.game_end():
+        if go.is_game_finished():
             return
         action = self.max_qvalue(go, piece_type)
         # self.states_to_update.append((go.state_string(), action))
@@ -230,7 +230,7 @@ class Q_learning_agent:
     def get_input_policy(self, go, piece_type):
         # if self.identity != piece_type and go.score(piece_type) <= 0:
         #     self.identity = piece_type
-        if go.game_end():
+        if go.is_game_finished():
             return
         state = go.state_string()
         if state in self.policy:
@@ -239,7 +239,7 @@ class Q_learning_agent:
             while True:
                 action = random.choice(list(self.policy.values()))
                 if action != "PASS":
-                    if go.valid_place_check(action[0], action[1], piece_type, test_check=True):
+                    if go.is_position_valid(action[0], action[1], piece_type, test_check=True):
                         return action
         # action = self.max_qvalue(go, piece_type)
         self.states_to_update.append((go.state_string(), action))
@@ -258,7 +258,7 @@ class Q_learning_agent:
     def update_Qvalues(self, go, num_game):
         # after a game update the q table
         # check result to set the reward
-        winner = go.judge_winner()
+        winner = go.and_the_winner_is___()
         if winner == self.identity:
             reward = WIN
         elif winner == 0:

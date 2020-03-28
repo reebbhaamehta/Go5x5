@@ -3,7 +3,7 @@ import copy
 import numpy as np
 import gamelearnbuffer as go
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     games20 = "29.txt"
     game_list = []
     with open(games20, "r") as f:

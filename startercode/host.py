@@ -252,12 +252,12 @@ class GO:
         # Check if the place has liberty
         test_board[i][j] = piece_type
         test_go.update_board(test_board)
-        if test_go.find_liberty(i, j):
+        if test_go.has_liberty(i, j):
             return True
 
         # If not, remove the died pieces of opponent and check again
-        test_go.remove_died_pieces(3 - piece_type)
-        if not test_go.find_liberty(i, j):
+        test_go.clean_dead_stones(3 - piece_type)
+        if not test_go.has_liberty(i, j):
             if verbose:
                 print('Invalid placement. No liberty found in this position.')
             return False
